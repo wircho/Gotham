@@ -172,110 +172,46 @@ function getUniqueId() {
 */
 
 // Constants
-const STEPS = {
-  LOCKED:-1,
-  NONE:0,
-  PICTURE:1,
-  LOCATION:2,
-  MESSAGE:3,
-  ALL:3
-}
 
 const ACTIONS = {
-  FINISH_STEP:"FINISH_STEP", // step: Step.SOMETHING
-  DISPLAY_MAP:"DISPLAY_MAP", // No parameters
-  HIDE_MAP:"HIDE_MAP", // No parameters
-  UPDATE_MAP:"UPDATE_MAP", // latitude:, longitude:, zoom:
-  ENABLE_APP:"ENABLE_APP", // enabled: Bool
-  CLEAR_STEPS:"CLEAR_STEPS", // No parameters
-  UNDO_SUBMIT_STEP:"UNDO_SUBMIT_STEP", // No parameters
-  DONE:"DONE", // No parameters
-  CLOSE_BUBBLE:"CLOSE_BUBBLE", // No parameters
-  OPEN_BUBBLE:"OPEN_BUBBLE" // No parameters
-}
-
-const MONTREAL_LOCATION = {latitude:45.501926,longitude:-73.563103,zoom:8};
-const MONTREAL_BOUNDS = {
-  TOP_LEFT:{latitude:45.766313, longitude:-74.079805},
-  BOTTOM_RIGHT:{latitude:45.262068, longitude:-73.281923}
+  START_LOADING:"START_LOADING", // No params
+  SET_TAGS:"SET_TAGS", // tags:  [{name:"...", value:0.98}, ...]
 }
 
 // Redux model
 /*
 {
-  step:STEPS.SOMETHING,
-  map:{
-    visible:,
-    location:{latitude:,longitude:,zoom:},
-    savedLocation:{latitude:,longitude:,zoom:}
-  }
-  text:"..."
+  loading: Boolean,
+  tags: [
+    {name:"...", value:0.98},
+    {name:"...", value:0.65},
+    ...
+  ]
 }
 */
 
 // Actions creators
-const finishStep = step=>({type:ACTIONS.FINISH_STEP,step});
-const displayMap = ()=>({type:ACTIONS.DISPLAY_MAP});
-const hideMap = save=>({type:ACTIONS.HIDE_MAP,save});
-const updateMap = location=>({type:ACTIONS.UPDATE_MAP,location});
-const enableApp = enabled=>({type:ACTIONS.ENABLE_APP,enabled});
-const clearSteps = enabled=>({type:ACTIONS.CLEAR_STEPS,enabled});
-const undoSubmitStep = enabled=>({type:ACTIONS.UNDO_SUBMIT_STEP,enabled});
-const showDone = ()=>({type:ACTIONS.DONE});
-const closeBubble = ()=>({type:ACTIONS.CLOSE_BUBBLE});
-const openBubble = ()=>({type:ACTIONS.OPEN_BUBBLE});
+const startLoading = ()=>({type:ACTIONS.START_LOADING});
+const setTags = tags=>({type:ACTIONS.SET_TAGS,tags});
 
 // Reducer
-const initialState = {step:STEPS.LOCKED, bubble_is_closed:getClosedBubble()};
-const clearState = {step:STEPS.NONE}; // bubble_is_closed will be persisted anyway
+const initialState = {};
+const clearState = {}; // bubble_is_closed will be persisted anyway
 function app(state,action) {
   if (!def(state)) {
     return initialState
   }
   switch (action.type) {
-    case ACTIONS.FINISH_STEP:
-      if (action.step > state.step) {
-        return mutate(state,{step:action.step});
+    case ACTIONS.SET_TAGS:
+      var newState = remove(state,"loading");
+      if (def(action.tags)) {
+        return mutate(newState,{tags:action.tags});
       }else {
-        return state;
+        return remove(newState,"tags");
       }
       break;
-    case ACTIONS.DISPLAY_MAP:
-      return mutate(state,{map:mutate(fallback(state.map,{}),{visible:true})});
-      break;
-    case ACTIONS.HIDE_MAP:
-      var location = state.map.location;
-      var savedLocation = state.map.savedLocation;
-      if (action.save) {
-        return mutate(state,{map:mutate(fallback(state.map,{}),{visible:false,location,savedLocation:location})});
-      }else if (def(savedLocation)){
-        return mutate(state,{map:mutate(fallback(state.map,{}),{visible:false,location:savedLocation,savedLocation})});
-      }else {
-        return mutate(state,{map:mutate(remove(fallback(state.map,{}),["location","savedLocation"]),{visible:false})});
-      }
-      break;
-    case ACTIONS.UPDATE_MAP:
-      var oldLocation = def(state.map) ? fallback(state.map.location,{}) : {};
-      var location = mutate(oldLocation,action.location);
-      return mutate(state,{map:mutate(fallback(state.map,{}),{location})});
-      break;
-    case ACTIONS.ENABLE_APP:
-      return mutate(state,{app_enabled:action.enabled});
-      break;
-    case ACTIONS.CLEAR_STEPS:
-      return mutate(clearState,{bubble_is_closed:state.bubble_is_closed});
-      break;
-    case ACTIONS.UNDO_SUBMIT_STEP:
-      return mutate(state,{step:STEPS.ALL - 1});
-      break;
-    case ACTIONS.DONE:
-      return mutate(state,{done:true});
-      break;
-    case ACTIONS.CLOSE_BUBBLE:
-      return mutate(state,{bubble_is_closed:true});
-      break;
-    case ACTIONS.OPEN_BUBBLE:
-      return mutate(state,{bubble_is_closed:false});
+    case ACTIONS.START_LOADING:
+      return mutate(state,{loading:true});
       break;
   }
 }
@@ -284,6 +220,7 @@ function app(state,action) {
 const mapStateToProps = state=>state;
 
 const mapDispatchToProps = (dispatch) => ({
+/*
   selectedPicture: (event) => {
     event.preventDefault();
     dispatch(finishStep(STEPS.PICTURE));
@@ -352,10 +289,12 @@ const mapDispatchToProps = (dispatch) => ({
     storeClosedBubble(false);
     dispatch(openBubble());
   }
+*/
 });
 
 //React classes
 const App = React.createClass({
+  /*
   componentDidMount: function() {
     var component = this;
     $('#form').submit(function(event) {
@@ -367,7 +306,14 @@ const App = React.createClass({
     event.preventDefault();
     this.props.clickedSubmitButton(this.props.submitted,this.props.submitFailed);
   },
+  */
   render: function() {
+    return (
+      <div>
+        Hello World
+      </div>
+    )
+    /*
     return (
       <div id="outer-content">
         <div id="sent-content" className={classNames({hidden:!fallback(this.props.done,false)})}>
@@ -417,9 +363,11 @@ const App = React.createClass({
         </div>
       </div>
     );
+    */
   }
 });
 
+/*
 const Steps = React.createClass({
   render: function() {
     var nextStep = this.props.step + 1;
@@ -567,36 +515,7 @@ const MapCanvas = React.createClass({
     }
   }
 });
-
-const MapOverlay = React.createClass({
-  render: function() {
-    if (def(this.props.map) && this.props.map.visible) {
-      var zoomDisabled = this.props.map.location.zoom <= 15;
-      var mtlDisabled = this.props.map.location.latitude > MONTREAL_BOUNDS.TOP_LEFT.latitude
-                     || this.props.map.location.latitude < MONTREAL_BOUNDS.BOTTOM_RIGHT.latitude
-                     || this.props.map.location.longitude < MONTREAL_BOUNDS.TOP_LEFT.longitude
-                     || this.props.map.location.longitude > MONTREAL_BOUNDS.BOTTOM_RIGHT.longitude;
-      var disabled = zoomDisabled || mtlDisabled;
-      return (<div id="map-overlay">
-        <div id="map-pin"></div>
-        <div id="map-buttons">
-          <button
-            id="map-done"
-            className={classNames({disabled:zoomDisabled && !mtlDisabled,"mtl-disabled":mtlDisabled})}
-            disabled={disabled}
-            onClick={this.props.clickedMapDoneButton}
-          >choisir</button>
-          <button
-            id="map-cancel"
-            onClick={this.props.clickedMapCancelButton}
-          >annuler</button>
-        </div>
-      </div>);
-    }else {
-      return false;
-    }
-  }
-});
+*/
 
 //React / Redux connection and render
 const store = createStore(app);
@@ -605,6 +524,3 @@ ReactDOM.render(
   <Provider store={store}><VisibleApp /></Provider>,
   document.getElementById('content')
 );
-window.initedGoogleMaps = function() {
-  store.dispatch(finishStep(STEPS.NONE));
-};
