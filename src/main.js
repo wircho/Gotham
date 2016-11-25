@@ -32,6 +32,11 @@ function nullFallback(x,y) {
   return y;
 }
 
+var isDragAndDropAvailable = function() {
+  var div = document.createElement('div');
+  return ('draggable' in div) || ('ondragstart' in div && 'ondrop' in div);
+}();
+
 
 // API
 /*
@@ -368,6 +373,7 @@ const App = React.createClass({
   }
 });
 
+var orDragClasses = classNames({hidden:!isDragAndDropAvailable})
 const ImageBox = React.createClass({
   render: function() {
     return (
@@ -378,10 +384,7 @@ const ImageBox = React.createClass({
               <input id="image-file" type="file" name="files[]"/>
               Choose a file
             </label>
-            <span> </span>
-            <span>
-              or drag it here
-            </span>
+            <span className={orDragClasses}> or drag it here</span>
           </div>
         </div>
       </div>

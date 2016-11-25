@@ -37,7 +37,6 @@ body, html {
 #image-cabinet {
 	position:relative;
     background: green;
-    display: inline-block;
     overflow: hidden;
     cursor: pointer;
 }
