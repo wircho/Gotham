@@ -309,8 +309,9 @@ const App = React.createClass({
   */
   render: function() {
     return (
-      <div>
-        Hello World
+      <div id="inner-content">
+        <ImageBox/>
+        <Tags/>
       </div>
     )
     /*
@@ -364,6 +365,37 @@ const App = React.createClass({
       </div>
     );
     */
+  }
+});
+
+const ImageBox = React.createClass({
+  render: function() {
+    return (
+      <div id="image-box-container">
+        <div id="image-box">
+          <div id="image-box-content">
+            <label id="image-cabinet" htmlFor="image-file">
+              <input id="image-file" type="file" name="files[]"/>
+              Choose a file
+            </label>
+            <span> </span>
+            <span>
+              or drag it here
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+});
+
+const Tags = React.createClass({
+  render: function() {
+    return (
+      <div id="tags">
+        tags!
+      </div>
+    )
   }
 });
 
