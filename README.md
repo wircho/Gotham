@@ -1,2 +1,2 @@
-# Sebastian
-A web app aiming to modernize the traditional approach to 311 services.
+# Gotham
+A machine-learning based classifier for common 311 issues
