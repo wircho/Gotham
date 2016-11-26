@@ -530,7 +530,7 @@
 	        { key: key },
 	        _react2.default.createElement(
 	          'td',
-	          null,
+	          { className: classNames({ highlighted: i <= 2 }) },
 	          tag["name"]
 	        ),
 	        _react2.default.createElement(

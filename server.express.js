@@ -76,6 +76,11 @@ var categories = [
 	"Lights"
 ];
 
+var removeCategories = {
+	"Garbage & Litter": true,
+	"Graffiti": true
+};
+
 function loadCSV(fileName) {
 	return new Promise(function(res,rej) {
 		fs.readFile(fileName,'utf8',function(error,data) {
@@ -158,7 +163,10 @@ function processTags(json) {
 	        var answer = applyML(vector,thetas[0],thetas[1]);
 	        var tags = [];
 	        for (var i=0; i<categories.length; i+=1) {
-	        	tags.push({name:categories[i],value:answer[i]});
+	        	var category = categories[i];
+	        	if (!removeCategories[category]) {
+	        		tags.push({name:category,value:answer[i]});
+	        	}
 	        }
 	        tags.sort((a,b) => {
 	        	return (a.value < b.value) ? 1 : ((a.value > b.value) ? (-1) : 0);
