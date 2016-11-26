@@ -77,8 +77,8 @@ var categories = [
 ];
 
 var removeCategories = {
-	"Garbage & Litter": true,
-	"Graffiti": true
+	"Garbage & Litter": false,
+	"Graffiti": false
 };
 
 function loadCSV(fileName) {
