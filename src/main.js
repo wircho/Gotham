@@ -94,6 +94,10 @@ function uploadFileData(fileData) {
   });
 }
 
+function getImageTags(url) {
+  return apiReq({url:"/tags",data:{url}});
+}
+
 /*
 function storageAvailable(type) {
   try {
@@ -209,14 +213,17 @@ const mapStateToProps = state=>state;
 const mapDispatchToProps = (dispatch) => ({
   uploadImage: (file) => {
     dispatch(startLoading());
-    uploadFileData(file).then(
-      function(json) {
-        alert(JSON.stringify(json));
-      },
-      function(error) {
-        alert(errstr(error));
-      }
-    );
+    uploadFileData(file).then(function(json) {
+      getImageTags(json.url).then(function(json) {
+        alert("Got JSON: " + JSON.stringify(json));
+      },function(error) {
+        alert("Something went wrong: " + errstr(error));
+        dispatch(setTags())
+      });
+    },function(error) {
+      alert("Something went wrong: " + errstr(error));
+      dispatch(setTags())
+    });
   }
 /*
   selectedPicture: (event) => {

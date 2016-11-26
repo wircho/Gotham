@@ -28,6 +28,7 @@ import {
 } from 'wircho-utilities';
 
 const S3_BUCKET = process.env.S3_BUCKET_NAME;
+const CLARIFAI_KEY = process.env.CLARIFAI_KEY;
 
 // Local Utilities
 var extRE = /(?:\.([^.]+))?$/;
@@ -103,7 +104,6 @@ app.get('/sign-s3', function(req, res) {
 	const originalFileName = req.query['name'];
 	const ext = def(originalFileName) ? extRE.exec(originalFileName)[1].toLowerCase() : undefined;
 	const fileType = req.query['type'];
-	console.log("Bucket: " + S3_BUCKET);
 	generateUniqueFileName(s3,ext).then(function(fileName) {
 		var params = {
 			Bucket: S3_BUCKET,
@@ -124,6 +124,32 @@ app.get('/sign-s3', function(req, res) {
 			});
 		});
 	}, function(error) {
+		res.json(errdict(error));
+	});
+});
+
+app.get('/tags', function(req,res) {
+	const url = req.query['url'];
+	console.log("HTTPS REQUEST BEGAN!");
+	https.request({
+		host: "api.clarifai.com",
+		path: "/v1/tag/",
+		method: "POST",
+		headers: {
+			authorization: "Bearer " + CLARIFAI_KEY
+		}
+	}, (response) => {
+		var body = "";
+		response.on("data", function(d) {
+			body += d;
+		});
+		response.on("end", function() {
+			console.log("HTTPS RESPONSE ENDED!");
+			var json = JSON.parse(body);
+			res.json(json);
+		});
+	}).on("error", (error) => {
+		console.log("HTTPS RESPONSE ERRORED!");
 		res.json(errdict(error));
 	});
 });
