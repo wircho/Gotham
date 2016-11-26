@@ -215,14 +215,28 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(startLoading());
     uploadFileData(file).then(function(json) {
       getImageTags(json.url).then(function(json) {
-        alert("Got JSON: " + JSON.stringify(json));
+        var results = json.results;
+        if (!def(results)) { alert("Error: No results."); return; }
+        var result = results.result;
+        if (!def(result)) { alert("Error: No result."); return; }
+        var tag = result.tag;
+        if (!def(tag)) { alert("Error: No tags."); return; }
+        var classes = tag.classes;
+        var probs = tag.probs;
+        if (!def(classes) || !def(probs)) { alert("Error: No classes or probs."); return; }
+        var tags = [];
+        for (var i=0; i<classes.length; i+=1) {
+          tags.push({name:classes[i],value:probs[i]});
+        }
+        alert("Tags: " + JSON.stringify(tags));
+        dispatch(setTags(tags));
       },function(error) {
         alert("Something went wrong while processing image: " + errstr(error));
-        dispatch(setTags())
+        dispatch(setTags());
       });
     },function(error) {
       alert("Something went wrong while uploading image: " + errstr(error));
-      dispatch(setTags())
+      dispatch(setTags());
     });
   }
 /*

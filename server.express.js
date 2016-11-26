@@ -148,13 +148,11 @@ app.get('/tags', function(req,res) {
 			body += d;
 		});
 		response.on("end", function() {
-			console.log("HTTPS RESPONSE ENDED!");
 			var json = JSON.parse(body);
 			res.json(json);
 		});
 	});
 	req.on("error", (error) => {
-		console.log("HTTPS RESPONSE ERRORED!");
 		res.json(errdict(error));
 	});
 	req.write(body);

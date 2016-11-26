@@ -280,13 +280,35 @@
 	      dispatch(startLoading());
 	      uploadFileData(file).then(function (json) {
 	        getImageTags(json.url).then(function (json) {
-	          alert("Got JSON: " + (0, _stringify2.default)(json));
+	          var results = json.results;
+	          if (!(0, _wirchoUtilities.def)(results)) {
+	            alert("Error: No results.");return;
+	          }
+	          var result = results.result;
+	          if (!(0, _wirchoUtilities.def)(result)) {
+	            alert("Error: No result.");return;
+	          }
+	          var tag = result.tag;
+	          if (!(0, _wirchoUtilities.def)(tag)) {
+	            alert("Error: No tags.");return;
+	          }
+	          var classes = tag.classes;
+	          var probs = tag.probs;
+	          if (!(0, _wirchoUtilities.def)(classes) || !(0, _wirchoUtilities.def)(probs)) {
+	            alert("Error: No classes or probs.");return;
+	          }
+	          var tags = [];
+	          for (var i = 0; i < classes.length; i += 1) {
+	            tags.push({ name: classes[i], value: probs[i] });
+	          }
+	          alert("Tags: " + (0, _stringify2.default)(tags));
+	          dispatch(setTags(tags));
 	        }, function (error) {
-	          alert("Something went wrong: " + (0, _wirchoUtilities.errstr)(error));
+	          alert("Something went wrong while processing image: " + (0, _wirchoUtilities.errstr)(error));
 	          dispatch(setTags());
 	        });
 	      }, function (error) {
-	        alert("Something went wrong: " + (0, _wirchoUtilities.errstr)(error));
+	        alert("Something went wrong while uploading image: " + (0, _wirchoUtilities.errstr)(error));
 	        dispatch(setTags());
 	      });
 	    }
