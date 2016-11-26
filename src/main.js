@@ -37,7 +37,6 @@ var isDragAndDropSupported = function() {
   return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
 }();
 
-
 // API
 function apiReq(dict) {
   return new Promise(function(res,rej) {
@@ -67,7 +66,7 @@ function uploadFileData(fileData) {
     data.type = file.type;
   }
   return new Promise(function(res,rej) {
-    if (!def(file) || !def(data.type)) {
+    if (!def(file) || !def(data.name) || !def(data.type)) {
       rej(err("Bad file data."));
       return;
     }
@@ -76,7 +75,7 @@ function uploadFileData(fileData) {
       var url = json.url;
       var fileName = json.fileName;
       if (!def(signedRequest) || !def(url)) {
-        res({fileName});
+        rej(err("Failed to get S3 signed request or file URL."));
         return;
       }
       const xhr = new XMLHttpRequest();
@@ -84,7 +83,7 @@ function uploadFileData(fileData) {
       xhr.onreadystatechange = () => {
         if(xhr.readyState === 4){
           if(xhr.status === 200){
-            res({fileName});
+            res({url});
           } else{
             rej(err("Failed to upload image file."));
           }
