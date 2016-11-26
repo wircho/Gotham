@@ -116,6 +116,15 @@ thetas.then(function(thetas) {
 	console.log("Error getting thetas: " + errstr(error))
 });
 
+function preProcessVector(vector) {
+	return vector.map((element) => {
+		var e2 = element * element;
+		var e4 = e2 * e2;
+		var e8 = e4 * e4;
+		return e8;
+	});
+}
+
 function applyMatrix(vector,matrix) {
 	var result = [];
 	for (var i=0; i<matrix.length; i+=1) {
@@ -136,7 +145,7 @@ function applySigmoid(vector) {
 }
 
 function applyML(vector,theta1,theta2) {
-	return applySigmoid(applyMatrix(applySigmoid(applyMatrix(vector,theta1)),theta2));
+	return applySigmoid(applyMatrix(applySigmoid(applyMatrix(preProcessVector(vector),theta1)),theta2));
 }
 
 function processTags(json) {
