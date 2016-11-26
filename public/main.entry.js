@@ -281,10 +281,10 @@
 	      uploadFileData(file).then(function (json) {
 	        getImageTags(json.url).then(function (json) {
 	          var results = json.results;
-	          if (!(0, _wirchoUtilities.def)(results)) {
+	          if (!(0, _wirchoUtilities.def)(results) || results.length === 0) {
 	            alert("Error: No results.");return;
 	          }
-	          var result = results.result;
+	          var result = results[0].result;
 	          if (!(0, _wirchoUtilities.def)(result)) {
 	            alert("Error: No result.");return;
 	          }
@@ -407,7 +407,7 @@
 	      'div',
 	      { id: 'inner-content' },
 	      _react2.default.createElement(ImageBox, { loading: this.props.loading, uploadImage: this.props.uploadImage }),
-	      _react2.default.createElement(Tags, null)
+	      _react2.default.createElement(Tags, { tags: this.props.tags })
 	    );
 	    /*
 	    return (
@@ -540,10 +540,36 @@
 	  displayName: 'Tags',
 
 	  render: function render() {
+	    if (!(0, _wirchoUtilities.def)(this.props.tags) || this.props.tags.length === 0) {
+	      return _react2.default.createElement('div', null);
+	    }
+	    var trs = [];
+	    for (var i = 0; i < this.props.tags.length; i += 1) {
+	      var tag = this.props.tags[i];
+	      var id = "tag " + i;
+	      trs.push(_react2.default.createElement(
+	        'tr',
+	        { id: id },
+	        _react2.default.createElement(
+	          'td',
+	          null,
+	          tag["name"]
+	        ),
+	        _react2.default.createElement(
+	          'td',
+	          null,
+	          tag["value"]
+	        )
+	      ));
+	    }
 	    return _react2.default.createElement(
 	      'div',
 	      { id: 'tags' },
-	      'tags!'
+	      _react2.default.createElement(
+	        'table',
+	        null,
+	        trs
+	      )
 	    );
 	  }
 	});

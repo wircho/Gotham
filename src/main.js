@@ -330,7 +330,7 @@ const App = React.createClass({
     return (
       <div id="inner-content">
         <ImageBox loading={this.props.loading} uploadImage={this.props.uploadImage}/>
-        <Tags/>
+        <Tags tags={this.props.tags}/>
       </div>
     )
     /*
@@ -453,9 +453,20 @@ const ImageBox = React.createClass({
 
 const Tags = React.createClass({
   render: function() {
+    if (!def(this.props.tags) || this.props.tags.length === 0) {
+      return <div></div>
+    }
+    var trs = [];
+    for (var i=0; i<this.props.tags.length; i+=1) {
+      var tag = this.props.tags[i];
+      var id = "tag " + i;
+      trs.push(<tr id={id}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+    }
     return (
       <div id="tags">
-        tags!
+        <table>
+          {trs}
+        </table>
       </div>
     )
   }
