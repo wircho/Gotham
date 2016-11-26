@@ -160,6 +160,9 @@ function processTags(json) {
 	        for (var i=0; i<categories.length; i+=1) {
 	        	tags.push({name:categories[i],value:answer[i]});
 	        }
+	        tags.sort((a,b) => {
+	        	return (a.value < b.value) ? (-1) : ((a.value > b.value) ? 1 : 0);
+	        });
 	        res({tags});
         },rej);
         
