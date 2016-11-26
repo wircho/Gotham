@@ -452,7 +452,7 @@ const ImageBox = React.createClass({
 
 const Tags = React.createClass({
   render: function() {
-    if (this.props.loading || !def(this.props.tags) || this.props.tags.length === 0) {
+    if (!def(this.props.tags) || this.props.tags.length === 0) {
       return <div></div>
     }
     var trs = [];
