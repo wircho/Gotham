@@ -89,6 +89,9 @@ body {
     background:blue;
     cursor: pointer;
 }
+#tags > table {
+	display: inline-block;
+}
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
 	border-style:solid;

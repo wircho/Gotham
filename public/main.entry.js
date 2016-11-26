@@ -407,7 +407,7 @@
 	      'div',
 	      { id: 'inner-content' },
 	      _react2.default.createElement(ImageBox, { loading: this.props.loading, uploadImage: this.props.uploadImage }),
-	      _react2.default.createElement(Tags, { tags: this.props.tags })
+	      _react2.default.createElement(Tags, { loading: this.props.loading, tags: this.props.tags })
 	    );
 	    /*
 	    return (
@@ -540,16 +540,16 @@
 	  displayName: 'Tags',
 
 	  render: function render() {
-	    if (!(0, _wirchoUtilities.def)(this.props.tags) || this.props.tags.length === 0) {
+	    if (this.props.loading || !(0, _wirchoUtilities.def)(this.props.tags) || this.props.tags.length === 0) {
 	      return _react2.default.createElement('div', null);
 	    }
 	    var trs = [];
 	    for (var i = 0; i < this.props.tags.length; i += 1) {
 	      var tag = this.props.tags[i];
-	      var id = "tag " + i;
+	      var key = "tag " + i;
 	      trs.push(_react2.default.createElement(
 	        'tr',
-	        { id: id },
+	        { key: id },
 	        _react2.default.createElement(
 	          'td',
 	          null,
@@ -568,7 +568,11 @@
 	      _react2.default.createElement(
 	        'table',
 	        null,
-	        trs
+	        _react2.default.createElement(
+	          'tbody',
+	          null,
+	          trs
+	        )
 	      )
 	    );
 	  }

@@ -228,7 +228,6 @@ const mapDispatchToProps = (dispatch) => ({
         for (var i=0; i<classes.length; i+=1) {
           tags.push({name:classes[i],value:probs[i]});
         }
-        alert("Tags: " + JSON.stringify(tags));
         dispatch(setTags(tags));
       },function(error) {
         alert("Something went wrong while processing image: " + errstr(error));
@@ -330,7 +329,7 @@ const App = React.createClass({
     return (
       <div id="inner-content">
         <ImageBox loading={this.props.loading} uploadImage={this.props.uploadImage}/>
-        <Tags tags={this.props.tags}/>
+        <Tags loading={this.props.loading} tags={this.props.tags}/>
       </div>
     )
     /*
@@ -453,19 +452,21 @@ const ImageBox = React.createClass({
 
 const Tags = React.createClass({
   render: function() {
-    if (!def(this.props.tags) || this.props.tags.length === 0) {
+    if (this.props.loading || !def(this.props.tags) || this.props.tags.length === 0) {
       return <div></div>
     }
     var trs = [];
     for (var i=0; i<this.props.tags.length; i+=1) {
       var tag = this.props.tags[i];
-      var id = "tag " + i;
-      trs.push(<tr id={id}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      var key = "tag " + i;
+      trs.push(<tr key={id}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
     }
     return (
       <div id="tags">
         <table>
-          {trs}
+          <tbody>
+            {trs}
+          </tbody>
         </table>
       </div>
     )
