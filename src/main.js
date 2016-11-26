@@ -217,11 +217,11 @@ const mapDispatchToProps = (dispatch) => ({
       getImageTags(json.url).then(function(json) {
         alert("Got JSON: " + JSON.stringify(json));
       },function(error) {
-        alert("Something went wrong: " + errstr(error));
+        alert("Something went wrong while processing image: " + errstr(error));
         dispatch(setTags())
       });
     },function(error) {
-      alert("Something went wrong: " + errstr(error));
+      alert("Something went wrong while uploading image: " + errstr(error));
       dispatch(setTags())
     });
   }
