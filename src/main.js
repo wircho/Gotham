@@ -452,14 +452,14 @@ const ImageBox = React.createClass({
 
 const Tags = React.createClass({
   render: function() {
-    if (!def(this.props.tags) || this.props.tags.length === 0) {
+    if (this.props.loading || !def(this.props.tags) || this.props.tags.length === 0) {
       return <div></div>
     }
     var trs = [];
     for (var i=0; i<this.props.tags.length; i+=1) {
       var tag = this.props.tags[i];
       var key = "tag " + i;
-      trs.push(<tr key={id}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      trs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
     }
     return (
       <div id="tags">
