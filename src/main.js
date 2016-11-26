@@ -216,8 +216,8 @@ const mapDispatchToProps = (dispatch) => ({
     uploadFileData(file).then(function(json) {
       getImageTags(json.url).then(function(json) {
         var results = json.results;
-        if (!def(results)) { alert("Error: No results."); return; }
-        var result = results.result;
+        if (!def(results) || results.length === 0) { alert("Error: No results."); return; }
+        var result = results[0].result;
         if (!def(result)) { alert("Error: No result."); return; }
         var tag = result.tag;
         if (!def(tag)) { alert("Error: No tags."); return; }
