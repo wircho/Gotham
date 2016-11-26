@@ -10,6 +10,7 @@ var path 					= require('path');
 var formidable 				= require('formidable');
 var fs 						= require('fs');
 const aws 					= require('aws-sdk');
+const querystring 			= require('querystring');
 import {
 //Utilities
   pad,
@@ -131,12 +132,15 @@ app.get('/sign-s3', function(req, res) {
 app.get('/tags', function(req,res) {
 	const url = req.query['url'];
 	console.log("HTTPS REQUEST BEGAN!");
-	https.request({
+	var body = querystring.stringify({url});
+	var req = https.request({
 		host: "api.clarifai.com",
 		path: "/v1/tag/",
 		method: "POST",
 		headers: {
-			authorization: "Bearer " + CLARIFAI_KEY
+			"Authorization": "Bearer " + CLARIFAI_KEY,
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Content-Length": Buffer.byteLength(body)
 		}
 	}, (response) => {
 		var body = "";
@@ -148,10 +152,13 @@ app.get('/tags', function(req,res) {
 			var json = JSON.parse(body);
 			res.json(json);
 		});
-	}).on("error", (error) => {
+	});
+	req.on("error", (error) => {
 		console.log("HTTPS RESPONSE ERRORED!");
 		res.json(errdict(error));
 	});
+	req.write(body);
+	req.end();
 });
 
 /*
