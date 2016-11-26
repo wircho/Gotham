@@ -32,15 +32,13 @@ function nullFallback(x,y) {
   return y;
 }
 
-var isDragAndDropAvailable = function() {
+var isDragAndDropSupported = function() {
   var div = document.createElement('div');
-  return ('draggable' in div) || ('ondragstart' in div && 'ondrop' in div);
+  return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
 }();
 
 
 // API
-/*
-
 function apiReq(dict) {
   return new Promise(function(res,rej) {
     $.ajax(mutate({
@@ -61,37 +59,22 @@ function apiReq(dict) {
   });
 }
 
-function uploadData() {
-  var files = $("#picture").get(0).files;
-  var file = (def(files) && files !== null) ? files[0] : undefined;
-  file = (def(file) && file !== null) ? file : undefined;
-  var message = $("#message").val();
-  var name = $("#name").val();
-  var latitude = $("#location-latitude").val();
-  var longitude = $("#location-longitude").val();
-  var zoom = $("#location-zoom").val();
-  var uniqueId = getUniqueId();
-  var data = {
-    message,
-    name,
-    latitude,
-    longitude,
-    zoom
-  };
-  if (def(uniqueId)) {
-    data["unique-id"] = uniqueId;
-  }
+function uploadFileData(fileData) {
+  var file = (def(fileData) && fileData !== null) ? fileData : undefined;
+  var data = {};
   if (def(file)) {
-    data["file-name"] = file.name;
-    data["file-type"] = file.type;
+    data.name = file.name;
+    data.type = file.type;
   }
   return new Promise(function(res,rej) {
+    if (!def(file) || !def(data.type)) {
+      rej(err("Bad file data."));
+      return;
+    }
     apiReq({url:"/sign-s3",data}).then(function(json) {
       var signedRequest = json.signedRequest;
       var url = json.url;
       var fileName = json.fileName;
-      var uniqueId = json.uniqueId;
-      storeUniqueIdIfNonExistent(uniqueId);
       if (!def(signedRequest) || !def(url)) {
         res({fileName});
         return;
@@ -112,8 +95,7 @@ function uploadData() {
   });
 }
 
-*/
-
+/*
 function storageAvailable(type) {
   try {
     var storage = window[type],
@@ -126,6 +108,7 @@ function storageAvailable(type) {
     return false;   
   }
 }
+*/
 
 // STORAGE
 /*
@@ -225,6 +208,17 @@ function app(state,action) {
 const mapStateToProps = state=>state;
 
 const mapDispatchToProps = (dispatch) => ({
+  uploadImage: (file) => {
+    dispatch(startLoading());
+    uploadFileData(file).then(
+      function(json) {
+        alert(json);
+      },
+      function(error) {
+        alert(errstr(error));
+      }
+    );
+  }
 /*
   selectedPicture: (event) => {
     event.preventDefault();
@@ -315,7 +309,7 @@ const App = React.createClass({
   render: function() {
     return (
       <div id="inner-content">
-        <ImageBox/>
+        <ImageBox loading={this.props.loading} uploadImage={this.props.uploadImage}/>
         <Tags/>
       </div>
     )
@@ -373,20 +367,65 @@ const App = React.createClass({
   }
 });
 
-var orDragClasses = classNames({hidden:!isDragAndDropAvailable})
 const ImageBox = React.createClass({
+  componentDidMount: function() {
+    var $form = $("#image-box");
+    var preview = $("#image-preview")[0];
+    var $input = $("#image-file");
+    var imageBoxComponent = this;
+    var processFiles = function(files) {
+      var imageType = /^image\//;
+      if (files.length == 0) {
+        return;
+      }
+      var file = files[0];
+      if (!imageType.test(file.type)) {
+        alert("Wrong file type. Please provide an image.");
+        return;
+      }
+      preview.file = file;
+      var reader = new FileReader();
+      reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(preview);
+      reader.readAsDataURL(file);
+      $form.removeClass("without-image");
+      $form.addClass("with-image");
+      imageBoxComponent.props.uploadImage(file);
+    }
+    if (isDragAndDropSupported) {
+      $form.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      })
+      .on('dragover dragenter', function() {
+        $form.addClass('dragging');
+      })
+      .on('dragleave dragend drop', function() {
+        $form.removeClass('dragging');
+      })
+      .on('drop', function(e) {
+        if (imageBoxComponent.props.loading) {
+          return;
+        }
+        var files = e.originalEvent.dataTransfer.files;
+        processFiles(files);
+      });
+    }
+    $form.on("change","#image-file",function() {
+      var files = $input[0].files;
+      processFiles(files);
+    });
+  },
   render: function() {
     return (
       <div id="image-box-container">
-        <div id="image-box">
+        <form id="image-box" className="without-image">
+          <img id="image-preview"/>
           <div id="image-box-content">
-            <label id="image-cabinet" htmlFor="image-file">
+            <label id="image-cabinet" htmlFor="image-file" className={classNames({"disabled":this.props.loading})}>
               <input id="image-file" type="file" name="files[]"/>
-              Choose a file
             </label>
-            <span className={orDragClasses}> or drag it here</span>
           </div>
-        </div>
+        </form>
       </div>
     )
   }

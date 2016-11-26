@@ -29,24 +29,11 @@ import {
 
 const S3_BUCKET = process.env.S3_BUCKET_NAME;
 
-// Promise utilities
-function tryPromise(times,maker) {
-	return new Promise(function(res,rej) {
-		var promise = maker();
-		promise.then(res, function(error) {
-			if (times <= 1) {
-				rej(error);
-				return;
-			}
-			tryPromise(times-1,maker).then(res, rej);
-		});
-	});
-}
-
-// Utilities
+// Local Utilities
 var extRE = /(?:\.([^.]+))?$/;
 
 //HTTP->HTTPS Redirect
+/*
 app.use(function(req, res, next) {
 	var secure = req.headers['x-forwarded-proto'] === "https";
 	if (secure || req.headers.host.indexOf("localhost") === 0 || req.headers.host.indexOf("127.0.0.1") === 0) {
@@ -55,6 +42,7 @@ app.use(function(req, res, next) {
 		res.redirect('https://' + req.headers.host + req.url);
 	}
 });
+*/
 
 //Babel+Webpack
 app.use('/', express.static('public'));
@@ -91,12 +79,13 @@ function generateFileName(ext) {
     	return text;
     }
 }
-function generateUniqueFileName(s3,ext) {
+function generateUniqueFileName(s3,ext,againstExt) {
 	return new Promise(function(res,rej) {
 		var fileName = generateFileName(ext);
-		fileExists(s3,fileName + ".json").then(function(exists) {
+		var againstFileName = def(againstExt) ? (fileName + "." + againstExt) : fileName;
+		fileExists(s3,againstFileName).then(function(exists) {
 			if (exists) {
-				generateUniqueFileName(s3).then(res,rej);
+				generateUniqueFileName(s3,ext,againstExt).then(res,rej);
 			} else {
 				res(fileName);
 			}
@@ -107,83 +96,31 @@ const validFileExtensions = ["jpg","jpeg","gif","png"];
 function isExtensionValid(ext) {
 	return validFileExtensions.indexOf(ext) > -1;
 }
-function getSignedURLInfo(s3,originalFileName,fileType,ext) {
-	return new Promise(function(res,rej) {
-		if (!def(originalFileName) || !def(fileType) || !def(ext)) {
-			res({});
-			return;
-		}
-		if (!isExtensionValid(ext)) {
-			rej(err("Invalid file extension."));
-			return;
-		}
-		
-	});
-}
 
 //API
 app.get('/sign-s3', function(req, res) {
 	const s3 = new aws.S3();
-	const originalFileName = req.query['file-name'];
+	const originalFileName = req.query['name'];
 	const ext = def(originalFileName) ? extRE.exec(originalFileName)[1].toLowerCase() : undefined;
-	const fileType = req.query['file-type'];
-	const message = req.query['message'];
-	const name = req.query['name'];
-	const latitude = req.query['latitude'];
-	const longitude = req.query['longitude'];
-	const zoom = req.query['zoom'];
-	const userAgent = req.headers['user-agent'];
-	const forwardedAddress = req.headers['x-forwarded-for'];
-	const remoteAddress = req.connection.remoteAddress;
-	const json = {
-		message,
-		name,
-		latitude,
-		longitude,
-		zoom,
-		userAgent,
-		forwardedAddress,
-		remoteAddress
-	}
-	var uniqueId = req.query['unique-id'];
+	const fileType = req.query['type'];
+	console.log("Bucket: " + S3_BUCKET);
 	generateUniqueFileName(s3,ext).then(function(fileName) {
-		uniqueId = fallback(uniqueId,fileName);
-		json.uniqueId = uniqueId;
-		var jsonFileName = fileName + ".json";
 		var params = {
 			Bucket: S3_BUCKET,
-			Key: jsonFileName,
-			ContentType: 'application/json',
-			Body: JSON.stringify(json),
+			Key: fileName,
+			Expires: 60,
+			ContentType: fileType,
 			ACL: 'public-read'
-		}
-		s3.putObject(params, function(error,data) {
+		};
+		s3.getSignedUrl('putObject', params, (error, data) => {
 			if (error) {
 				res.json(errdict(error));
 				return;
 			}
-			if (!def(fileType) || !def(ext)) {
-				res.json({uniqueId,fileName});
-				return;
-			}
-			var params = {
-				Bucket: S3_BUCKET,
-				Key: fileName,
-				Expires: 60,
-				ContentType: fileType,
-				ACL: 'public-read'
-			};
-			s3.getSignedUrl('putObject', params, (error, data) => {
-				if (error) {
-					res.json(errdict(error));
-					return;
-				}
-				res.json({
-					uniqueId,
-					fileName,
-					signedRequest: data,
-					url: "https://" + S3_BUCKET + ".s3.amazonaws.com/" + fileName
-				});
+			res.json({
+				fileName,
+				signedRequest: data,
+				url: "https://" + S3_BUCKET + ".s3.amazonaws.com/" + fileName
 			});
 		});
 	}, function(error) {
@@ -191,6 +128,7 @@ app.get('/sign-s3', function(req, res) {
 	});
 });
 
+/*
 app.get('/all-submissions', function(req, res) {
 	const s3 = new aws.S3();
 	var params = {
@@ -218,6 +156,7 @@ app.get('/all-submissions', function(req, res) {
 		}));
 	});
 });
+*/
 
 // app.post('/submit', function (req, res) {
 // 	var form = new formidable.IncomingForm();
