@@ -76,8 +76,94 @@ var categories = [
 	"Lights"
 ];
 
-function applyML(vector) {
-	return [1,2,3,4,5,6,7,8,9];
+function loadCSV(fileName) {
+	return new Promise(function(res,rej) {
+		fs.readFile(fileName,'utf8',function(error,data) {
+			if (error) { rej(error); return; }
+			var lines = data.split(/\r\n|\n/);
+			var matrix = [];
+			var cols = 0;
+			for (var i=0; i<lines.length; i+=1) {
+				var entries = lines[i].split(",").map((n)=>{return n*1;});
+				if (i === 0) {
+					cols = entries.length;
+				} else if (cols !== entries.length) {
+					continue;
+				}
+				matrix.push(entries);
+			}
+			res(matrix);
+		});
+	});
+}
+
+var theta1 = loadCSV("thetas/theta1.csv");
+var theta2 = loadCSV("thetas/theta2.csv");
+var thetas = Promise.all([theta1,theta2]);
+thetas.then(function(thetas) {
+	var theta1 = thetas[0];
+	var theta2 = thetas[1];
+	console.log("There are " + clarifaiFeatureKeys.length + " features");
+	console.log("Theta1 is " + theta1.length + " x " + theta1[0].length);
+	console.log("Theta2 is " + theta2.length + " x " + theta2[0].length);
+	console.log("There are " + categories.length + " categories");
+}, function(error) {
+	console.log("Error getting thetas: " + errstr(error))
+});
+
+function applyMatrix(vector,matrix) {
+	var result = [];
+	for (var i=0; i<matrix.length; i+=1) {
+		var row = matrix[i];
+		var value = row[0];
+		for (var j=1; j<row.length; j+=1) {
+			value += row[j] * vector[j-1];
+		}
+		result.push(value);
+	}
+	return result;
+}
+
+function applySigmoid(vector) {
+	return vector.map((value) => {
+		return 1 / (1 + Math.exp(-value));
+	});
+}
+
+function applyML(vector,theta1,theta2) {
+	return applySigmoid(applyMatrix(applySigmoid(applyMatrix(vector,theta1)),theta2));
+}
+
+function processTags(json) {
+	return new Promise(function(res,rej) {
+		var results = json.results;
+        if (!def(results) || results.length === 0) { rej(err("No results")); return; }
+        var result = results[0].result;
+        if (!def(result)) { rej(err("No result.")); return; }
+        var tag = result.tag;
+        if (!def(tag)) { rej(err("No tags.")); return; }
+        var classes = tag.classes;
+        var probs = tag.probs;
+        if (!def(classes) || !def(probs) || classes.length === 0 || classes.length !== probs.length) { rej(err("No classes or probs.")); return; }
+        var num = classes.length;
+        var dict = {};
+        for (var i=0; i<num; i+=1) {
+        	dict[classes[i]] = probs[i];
+        }
+        var vector = [];
+        for (var i=0; i<clarifaiFeatureKeys.length; i+=1) {
+        	vector.push(fallback(dict[clarifaiFeatureKeys[i]],0));
+        }
+        thetas.then(function(thetas) {
+	        var answer = applyML(vector,thetas[0],thetas[1]);
+	        var tags = [];
+	        for (var i=0; i<categories.length; i+=1) {
+	        	tags.push({name:categories[i],value:answer[i]});
+	        }
+	        res({tags});
+        },rej);
+        
+	});
 }
 
 //Babel+Webpack
@@ -131,34 +217,6 @@ function generateUniqueFileName(s3,ext,againstExt) {
 const validFileExtensions = ["jpg","jpeg","gif","png"];
 function isExtensionValid(ext) {
 	return validFileExtensions.indexOf(ext) > -1;
-}
-function processTags(json) {
-	return new Promise(function(res,rej) {
-		var results = json.results;
-        if (!def(results) || results.length === 0) { rej(err("No results")); return; }
-        var result = results[0].result;
-        if (!def(result)) { rej(err("No result.")); return; }
-        var tag = result.tag;
-        if (!def(tag)) { rej(err("No tags.")); return; }
-        var classes = tag.classes;
-        var probs = tag.probs;
-        if (!def(classes) || !def(probs) || classes.length === 0 || classes.length !== probs.length) { rej(err("No classes or probs.")); return; }
-        var num = classes.length;
-        var dict = {};
-        for (var i=0; i<num; i+=1) {
-        	dict[classes[i]] = probs[i];
-        }
-        var vector = [];
-        for (var i=0; i<clarifaiFeatureKeys.length; i+=1) {
-        	vector.push(fallback(dict[clarifaiFeatureKeys[i]],0));
-        }
-        var answer = applyML(vector);
-        var tags = [];
-        for (var i=0; i<categories.length; i+=1) {
-        	tags.push({name:categories[i],value:answer[i]});
-        }
-        res({tags});
-	});
 }
 
 //API
