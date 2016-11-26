@@ -64,6 +64,22 @@ var clarifaiFeatureKeys = ["road", "no person", "street", "outdoors", "travel", 
 "forbidden", "coupe", "step", "law enforcement", "speed", "glass", "electricity", "intersection",
 "contemporary", "inside", "sunset", "box", "interior design"];
 
+var categories = [
+	"Pothole",
+	"Graffiti",
+	"Trees & Branches",
+	"Sidewalk Repair",
+	"Vehicles & Parking",
+	"Garbage & Litter",
+	"Signage",
+	"Drains & Flooding",
+	"Lights"
+];
+
+function applyML(vector) {
+	return [1,2,3,4,5,6,7,8,9];
+}
+
 //Babel+Webpack
 app.use('/', express.static('public'));
 
@@ -136,7 +152,12 @@ function processTags(json) {
         for (var i=0; i<clarifaiFeatureKeys.length; i+=1) {
         	vector.push(fallback(dict[clarifaiFeatureKeys[i]],0));
         }
-        res({tags:vector.map((value)=>{return {name:"test",value};})});
+        var answer = applyML(vector);
+        var tags = [];
+        for (var i=0; i<categories.length; i+=1) {
+        	tags.push({name:categories[i],value:answer[i]});
+        }
+        res({tags});
 	});
 }
 
