@@ -212,7 +212,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(startLoading());
     uploadFileData(file).then(
       function(json) {
-        alert(json);
+        alert(JSON.stringify(json));
       },
       function(error) {
         alert(errstr(error));
