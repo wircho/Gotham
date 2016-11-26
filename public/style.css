@@ -93,6 +93,9 @@ body {
 #tags > table {
 	display: inline-block;
 }
+.highlighted {
+	color:#ee333b;
+}
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
 	border-style:solid;

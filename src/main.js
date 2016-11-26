@@ -448,7 +448,7 @@ const Tags = React.createClass({
     for (var i=0; i<this.props.tags.length; i+=1) {
       var tag = this.props.tags[i];
       var key = "tag " + i;
-      trs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      trs.push(<tr key={key}><td className={classNames({highlighted:i<=2})}>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
     }
     return (
       <div id="tags">
