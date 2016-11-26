@@ -276,26 +276,9 @@
 	      dispatch(startLoading());
 	      uploadFileData(file).then(function (json) {
 	        getImageTags(json.url).then(function (json) {
-	          var results = json.results;
-	          if (!(0, _wirchoUtilities.def)(results) || results.length === 0) {
-	            alert("Error: No results.");return;
-	          }
-	          var result = results[0].result;
-	          if (!(0, _wirchoUtilities.def)(result)) {
-	            alert("Error: No result.");return;
-	          }
-	          var tag = result.tag;
-	          if (!(0, _wirchoUtilities.def)(tag)) {
+	          var tags = json.tags;
+	          if (!(0, _wirchoUtilities.def)(tags) || tags.length === 0) {
 	            alert("Error: No tags.");return;
-	          }
-	          var classes = tag.classes;
-	          var probs = tag.probs;
-	          if (!(0, _wirchoUtilities.def)(classes) || !(0, _wirchoUtilities.def)(probs)) {
-	            alert("Error: No classes or probs.");return;
-	          }
-	          var tags = [];
-	          for (var i = 0; i < classes.length; i += 1) {
-	            tags.push({ name: classes[i], value: probs[i] });
 	          }
 	          dispatch(setTags(tags));
 	        }, function (error) {

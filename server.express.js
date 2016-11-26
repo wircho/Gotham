@@ -31,20 +31,38 @@ import {
 const S3_BUCKET = process.env.S3_BUCKET_NAME;
 const CLARIFAI_KEY = process.env.CLARIFAI_KEY;
 
-// Local Utilities
+// Local Utilities/Constants
 var extRE = /(?:\.([^.]+))?$/;
 
-//HTTP->HTTPS Redirect
-/*
-app.use(function(req, res, next) {
-	var secure = req.headers['x-forwarded-proto'] === "https";
-	if (secure || req.headers.host.indexOf("localhost") === 0 || req.headers.host.indexOf("127.0.0.1") === 0) {
-		next();
-	}else {
-		res.redirect('https://' + req.headers.host + req.url);
-	}
-});
-*/
+var clarifaiFeatureKeys = ["road", "no person", "street", "outdoors", "travel", "environment",
+"vehicle", "urban", "transportation system", "city", "calamity", "pavement", "landscape", "car",
+"building", "people", "offense", "police", "accident", "architecture", "traffic", "guidance",
+"asphalt", "storm", "nature", "tree", "battle", "daylight", "house", "sign", "light", "action",
+"rain", "wood", "park", "old", "business", "rally", "desktop", "competition", "industry",
+"summer", "flood", "grass", "weather", "home", "stone", "ground", "garden", "water", "waste",
+"empty", "garbage", "texture", "concrete", "leaf", "wall", "highway", "pollution", "drive",
+"family", "hurricane", "sky", "flora", "soil", "dirty", "pattern", "danger", "track", "abstract",
+"graffiti", "expression", "truck", "wheel", "town", "war", "trash", "military", "abandoned",
+"window", "surface", "blur", "color", "automotive", "one", "blacktop", "hurry", "demolition",
+"safety", "flower", "sand", "security", "recycling", "race", "broken", "door", "adult", "motion",
+"savings", "rock", "auto racing", "lane", "cement", "lawn", "seat", "bus", "rough",
+"climate change", "container", "footpath", "beach", "indoors", "steel", "winter", "design",
+"soccer", "retro", "brick", "train", "line", "modern", "litter", "room", "recreation", "fast",
+"stock", "growth", "construction", "fence", "vintage", "rebellion", "warning", "tarmac", "text",
+"man", "museum", "earthquake", "hood", "commerce", "emergency", "shadow", "bitumen", "snow",
+"roadway", "flame", "bench", "symbol", "furniture", "fall", "yard", "tourism", "reflection",
+"food", "group", "art", "railway", "bridge", "seashore", "desert", "dust", "walk", "floor", "rural",
+"stop", "agriculture", "airport", "religion", "iron", "tube", "river", "luxury", "public",
+"technology", "season", "parking lot", "vertical", "entrance", "injury", "chair", "finance", "paper",
+"dark", "cold", "show", "gravel", "election", "exhibition", "wet", "championship", "sedan",
+"football", "equipment", "disposal", "exterior", "driver", "damage", "vandalism", "force", "sea",
+"driveway", "branch", "fair weather", "pool", "horizontal", "windshield", "energy", "crash", "farm",
+"antique", "fabric", "backyard", "evening", "roadside", "caution", "wooden", "leisure", "crack",
+"field", "child", "wear", "interaction", "paving", "dump", "bin", "ancient", "ice", "noon",
+"close-up", "hole", "perspective", "power", "woman", "wire", "plastic", "lush", "tar", "vacation",
+"scenic", "painting", "rusty", "junk", "downtown", "cobblestone", "information", "airplane", "bomb",
+"forbidden", "coupe", "step", "law enforcement", "speed", "glass", "electricity", "intersection",
+"contemporary", "inside", "sunset", "box", "interior design"];
 
 //Babel+Webpack
 app.use('/', express.static('public'));
@@ -98,6 +116,29 @@ const validFileExtensions = ["jpg","jpeg","gif","png"];
 function isExtensionValid(ext) {
 	return validFileExtensions.indexOf(ext) > -1;
 }
+function processTags(json) {
+	return new Promise(function(res,rej) {
+		var results = json.results;
+        if (!def(results) || results.length === 0) { rej(err("No results")); return; }
+        var result = results[0].result;
+        if (!def(result)) { rej(err("No result.")); return; }
+        var tag = result.tag;
+        if (!def(tag)) { rej(err("No tags.")); return; }
+        var classes = tag.classes;
+        var probs = tag.probs;
+        if (!def(classes) || !def(probs) || classes.length === 0 || classes.length !== probs.length) { rej(err("No classes or probs.")); return; }
+        var num = classes.length;
+        var dict = {};
+        for (var i=0; i<num; i+=1) {
+        	dict[classes[i]] = probs[i];
+        }
+        var vector = [];
+        for (var i=0; i<clarifaiFeatureKeys.length; i+=1) {
+        	vector.push(fallback(dict[clarifaiFeatureKeys[i]],0));
+        }
+        res({tags:vector.map((value)=>{return {name:"test",value};})});
+	});
+}
 
 //API
 app.get('/sign-s3', function(req, res) {
@@ -149,7 +190,11 @@ app.get('/tags', function(req,res) {
 		});
 		response.on("end", function() {
 			var json = JSON.parse(body);
-			res.json(json);
+			processTags(json).then(function(tagsJSON) {
+				res.json(tagsJSON);
+			}, function(error) {
+				res.json(errdict(error));
+			});
 		});
 	});
 	req.on("error", (error) => {
