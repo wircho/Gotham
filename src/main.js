@@ -320,10 +320,12 @@ const App = React.createClass({
   },
   */
   render: function() {
+    var tags = def(this.props.info) ? this.props.info.tags : undefined;
+    var cats = def(this.props.info) ? this.props.info.cats : undefined;
     return (
       <div id="inner-content">
         <ImageBox loading={this.props.loading} uploadImage={this.props.uploadImage}/>
-        <Info loading={this.props.loading} tags={this.props.info.tags} cats={this.props.info.cats}/>
+        <Info loading={this.props.loading} tags={tags} cats={cats}/>
       </div>
     )
     /*
