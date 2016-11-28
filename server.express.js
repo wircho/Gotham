@@ -114,7 +114,7 @@ thetas.then(function(thetas) {
 
 function preProcessVector(vector) {
 	return vector.map((element) => {
-		var e2 = element * element;
+		var e2 = 1 - (1 - element * element) * 0.5;
 		var e4 = e2 * e2;
 		var e8 = e4 * e4;
 		return e8;
