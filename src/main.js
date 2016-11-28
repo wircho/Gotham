@@ -222,7 +222,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(startLoading());
     uploadFileData(file).then(function(json) {
       getImageInfo(json.url).then(function(json) {
-        dispatch(setInfo(info));
+        dispatch(setInfo(json));
       },function(error) {
         alert("Something went wrong while processing image: " + errstr(error));
         dispatch(setInfo());
