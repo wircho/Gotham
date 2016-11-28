@@ -94,8 +94,8 @@ function uploadFileData(fileData) {
   });
 }
 
-function getImageTags(url) {
-  return apiReq({url:"/tags",data:{url}});
+function getImageInfo(url) {
+  return apiReq({url:"/info",data:{url}});
 }
 
 /*
@@ -166,24 +166,31 @@ function getUniqueId() {
 
 const ACTIONS = {
   START_LOADING:"START_LOADING", // No params
-  SET_TAGS:"SET_TAGS", // tags:  [{name:"...", value:0.98}, ...]
+  SET_INFO:"SET_INFO", // info: { tags:  [{name:"...", value:0.98}, ...], cats: [{name:"...", value:0.98}, ...] }
 }
 
 // Redux model
 /*
 {
   loading: Boolean,
-  tags: [
-    {name:"...", value:0.98},
-    {name:"...", value:0.65},
-    ...
-  ]
+  info: {
+    cats: [
+      {name:"...", value:0.98},
+      {name:"...", value:0.65},
+      ...
+    ]
+    tags: [
+      {name:"...", value:0.98},
+      {name:"...", value:0.65},
+      ...
+    ]
+  }
 }
 */
 
 // Actions creators
 const startLoading = ()=>({type:ACTIONS.START_LOADING});
-const setTags = tags=>({type:ACTIONS.SET_TAGS,tags});
+const setInfo = info=>({type:ACTIONS.SET_INFO,info});
 
 // Reducer
 const initialState = {};
@@ -193,12 +200,12 @@ function app(state,action) {
     return initialState
   }
   switch (action.type) {
-    case ACTIONS.SET_TAGS:
+    case ACTIONS.SET_INFO:
       var newState = remove(state,"loading");
-      if (def(action.tags)) {
-        return mutate(newState,{tags:action.tags});
+      if (def(action.info)) {
+        return mutate(newState,{info:action.info});
       }else {
-        return remove(newState,"tags");
+        return remove(newState,"info");
       }
       break;
     case ACTIONS.START_LOADING:
@@ -214,17 +221,15 @@ const mapDispatchToProps = (dispatch) => ({
   uploadImage: (file) => {
     dispatch(startLoading());
     uploadFileData(file).then(function(json) {
-      getImageTags(json.url).then(function(json) {
-        var tags = json.tags;
-        if (!def(tags) || tags.length === 0) { alert("Error: No tags."); return; }
-        dispatch(setTags(tags));
+      getImageInfo(json.url).then(function(json) {
+        dispatch(setInfo(info));
       },function(error) {
         alert("Something went wrong while processing image: " + errstr(error));
-        dispatch(setTags());
+        dispatch(setInfo());
       });
     },function(error) {
       alert("Something went wrong while uploading image: " + errstr(error));
-      dispatch(setTags());
+      dispatch(setInfo());
     });
   }
 /*
@@ -318,7 +323,7 @@ const App = React.createClass({
     return (
       <div id="inner-content">
         <ImageBox loading={this.props.loading} uploadImage={this.props.uploadImage}/>
-        <Tags loading={this.props.loading} tags={this.props.tags}/>
+        <Info loading={this.props.loading} tags={this.props.info.tags} cats={this.props.info.cats}/>
       </div>
     )
     /*
@@ -439,22 +444,38 @@ const ImageBox = React.createClass({
   }
 });
 
-const Tags = React.createClass({
+const Info = React.createClass({
   render: function() {
-    if (this.props.loading || !def(this.props.tags) || this.props.tags.length === 0) {
+    if (this.props.loading || !def(this.props.tags) || !def(this.props.cats) || this.props.tags.length === 0 || this.props.cats.length === 0) {
       return <div></div>
     }
+
     var trs = [];
+    for (var i=0; i<this.props.cats.length; i+=1) {
+      var cat = this.props.cats[i];
+      var key = "tag " + i;
+      trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
+    }
+
+    var ttrs = [];
     for (var i=0; i<this.props.tags.length; i+=1) {
       var tag = this.props.tags[i];
       var key = "tag " + i;
-      trs.push(<tr key={key}><td className={classNames({highlighted:i<=2})}>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
     }
+
     return (
       <div id="tags">
+        <div>CATEGORIES</div>
         <table>
           <tbody>
             {trs}
+          </tbody>
+        </table>
+        <div>TAGS</div>
+        <table>
+          <tbody>
+            {ttrs}
           </tbody>
         </table>
       </div>

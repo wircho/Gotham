@@ -157,8 +157,10 @@ function processTags(json) {
         if (!def(classes) || !def(probs) || classes.length === 0 || classes.length !== probs.length) { rej(err("No classes or probs.")); return; }
         var num = classes.length;
         var dict = {};
+        var tags = [];
         for (var i=0; i<num; i+=1) {
         	dict[classes[i]] = probs[i];
+        	tags.push({name:classes[i],value:probs[i]});
         }
         var vector = [];
         for (var i=0; i<clarifaiFeatureKeys.length; i+=1) {
@@ -166,17 +168,17 @@ function processTags(json) {
         }
         thetas.then(function(thetas) {
 	        var answer = applyML(vector,thetas[0],thetas[1]);
-	        var tags = [];
+	        var cats = [];
 	        for (var i=0; i<categories.length; i+=1) {
 	        	var category = categories[i];
 	        	if (!removeCategories[category]) {
-	        		tags.push({name:category,value:answer[i]});
+	        		cats.push({name:category,value:answer[i]});
 	        	}
 	        }
-	        tags.sort((a,b) => {
+	        cats.sort((a,b) => {
 	        	return (a.value < b.value) ? 1 : ((a.value > b.value) ? (-1) : 0);
 	        });
-	        res({tags});
+	        res({cats,tags});
         },rej);
         
 	});
@@ -265,9 +267,8 @@ app.get('/sign-s3', function(req, res) {
 	});
 });
 
-app.get('/tags', function(req,res) {
+app.get('/info', function(req,res) {
 	const url = req.query['url'];
-	console.log("HTTPS REQUEST BEGAN!");
 	var body = querystring.stringify({url});
 	var req = https.request({
 		host: "api.clarifai.com",
