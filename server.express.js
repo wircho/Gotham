@@ -121,26 +121,30 @@ function applyML(vector,theta1,theta2) {
 }
 
 function addOtherCategory(cats) {
-	console.log(cats);
+	//console.log(cats);
 	const t = 0.25;
-	var maxValue = 0;
-	var minValue = 1;
+	//var maxValue = 0;
+	//var minValue = 1;
 	var numCats = cats.length;
 	var newCats = [];
 	for (var i=0; i<numCats; i+=1) {
 		newCats.push(cats[i]);
-		var value = cats[i]["value"];
-		maxValue = Math.max(maxValue,value);
-		minValue = Math.min(minValue,value);
+		//var value = cats[i]["value"];
+		//maxValue = Math.max(maxValue,value);
+		//minValue = Math.min(minValue,value);
 	}
-	if (maxValue >= t) {
-		var otherValue = Math.max(0,minValue - (maxValue - t));
-		newCats.push({name:"Other",value:otherValue});
-	}else {
-		var otherValue = Math.min(0,maxValue + (t - maxValue));
-		newCats.unshift({name:"Other",value:otherValue});
-	}
-	console.log(newCats);
+	//if (maxValue >= t) {
+	//	var otherValue = Math.max(0,minValue - (maxValue - t));
+	//	newCats.push({name:"Other",value:otherValue});
+	//}else {
+	//	var otherValue = Math.min(0,maxValue + (t - maxValue));
+	//	newCats.unshift({name:"Other",value:otherValue});
+	//}
+	//console.log(newCats);
+	newCats.push({name:"Other",value:t});
+	newCats.sort((a,b) => {
+	    return (a.value < b.value) ? 1 : ((a.value > b.value) ? (-1) : 0);
+	});
 	return newCats;
 }
 
