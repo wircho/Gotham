@@ -149,8 +149,8 @@
 	  });
 	}
 
-	function getImageTags(url) {
-	  return apiReq({ url: "/tags", data: { url: url } });
+	function getImageInfo(url) {
+	  return apiReq({ url: "/info", data: { url: url } });
 	}
 
 	/*
@@ -221,17 +221,24 @@
 
 	var ACTIONS = {
 	  START_LOADING: "START_LOADING", // No params
-	  SET_TAGS: "SET_TAGS" };
+	  SET_INFO: "SET_INFO" };
 
 	// Redux model
 	/*
 	{
 	  loading: Boolean,
-	  tags: [
-	    {name:"...", value:0.98},
-	    {name:"...", value:0.65},
-	    ...
-	  ]
+	  info: {
+	    cats: [
+	      {name:"...", value:0.98},
+	      {name:"...", value:0.65},
+	      ...
+	    ]
+	    tags: [
+	      {name:"...", value:0.98},
+	      {name:"...", value:0.65},
+	      ...
+	    ]
+	  }
 	}
 	*/
 
@@ -239,8 +246,8 @@
 	var startLoading = function startLoading() {
 	  return { type: ACTIONS.START_LOADING };
 	};
-	var setTags = function setTags(tags) {
-	  return { type: ACTIONS.SET_TAGS, tags: tags };
+	var setInfo = function setInfo(info) {
+	  return { type: ACTIONS.SET_INFO, info: info };
 	};
 
 	// Reducer
@@ -251,12 +258,12 @@
 	    return initialState;
 	  }
 	  switch (action.type) {
-	    case ACTIONS.SET_TAGS:
+	    case ACTIONS.SET_INFO:
 	      var newState = (0, _wirchoUtilities.remove)(state, "loading");
-	      if ((0, _wirchoUtilities.def)(action.tags)) {
-	        return (0, _wirchoUtilities.mutate)(newState, { tags: action.tags });
+	      if ((0, _wirchoUtilities.def)(action.info)) {
+	        return (0, _wirchoUtilities.mutate)(newState, { info: action.info });
 	      } else {
-	        return (0, _wirchoUtilities.remove)(newState, "tags");
+	        return (0, _wirchoUtilities.remove)(newState, "info");
 	      }
 	      break;
 	    case ACTIONS.START_LOADING:
@@ -275,19 +282,15 @@
 	    uploadImage: function uploadImage(file) {
 	      dispatch(startLoading());
 	      uploadFileData(file).then(function (json) {
-	        getImageTags(json.url).then(function (json) {
-	          var tags = json.tags;
-	          if (!(0, _wirchoUtilities.def)(tags) || tags.length === 0) {
-	            alert("Error: No tags.");return;
-	          }
-	          dispatch(setTags(tags));
+	        getImageInfo(json.url).then(function (json) {
+	          dispatch(setInfo(json));
 	        }, function (error) {
 	          alert("Something went wrong while processing image: " + (0, _wirchoUtilities.errstr)(error));
-	          dispatch(setTags());
+	          dispatch(setInfo());
 	        });
 	      }, function (error) {
 	        alert("Something went wrong while uploading image: " + (0, _wirchoUtilities.errstr)(error));
-	        dispatch(setTags());
+	        dispatch(setInfo());
 	      });
 	    }
 	    /*
@@ -381,11 +384,13 @@
 	  },
 	  */
 	  render: function render() {
+	    var tags = (0, _wirchoUtilities.def)(this.props.info) ? this.props.info.tags : undefined;
+	    var cats = (0, _wirchoUtilities.def)(this.props.info) ? this.props.info.cats : undefined;
 	    return _react2.default.createElement(
 	      'div',
 	      { id: 'inner-content' },
 	      _react2.default.createElement(ImageBox, { loading: this.props.loading, uploadImage: this.props.uploadImage }),
-	      _react2.default.createElement(Tags, { loading: this.props.loading, tags: this.props.tags })
+	      _react2.default.createElement(Info, { loading: this.props.loading, tags: tags, cats: cats })
 	    );
 	    /*
 	    return (
@@ -514,23 +519,44 @@
 	  }
 	});
 
-	var Tags = _react2.default.createClass({
-	  displayName: 'Tags',
+	var Info = _react2.default.createClass({
+	  displayName: 'Info',
 
 	  render: function render() {
-	    if (this.props.loading || !(0, _wirchoUtilities.def)(this.props.tags) || this.props.tags.length === 0) {
+	    if (this.props.loading || !(0, _wirchoUtilities.def)(this.props.tags) || !(0, _wirchoUtilities.def)(this.props.cats) || this.props.tags.length === 0 || this.props.cats.length === 0) {
 	      return _react2.default.createElement('div', null);
 	    }
+
 	    var trs = [];
-	    for (var i = 0; i < this.props.tags.length; i += 1) {
-	      var tag = this.props.tags[i];
+	    for (var i = 0; i < this.props.cats.length; i += 1) {
+	      var cat = this.props.cats[i];
 	      var key = "tag " + i;
 	      trs.push(_react2.default.createElement(
 	        'tr',
 	        { key: key },
 	        _react2.default.createElement(
 	          'td',
-	          { className: classNames({ highlighted: i <= 2 }) },
+	          { className: classNames({ highlighted: i <= 0 }) },
+	          cat["name"]
+	        ),
+	        _react2.default.createElement(
+	          'td',
+	          null,
+	          cat["value"]
+	        )
+	      ));
+	    }
+
+	    var ttrs = [];
+	    for (var i = 0; i < this.props.tags.length; i += 1) {
+	      var tag = this.props.tags[i];
+	      var key = "tag " + i;
+	      ttrs.push(_react2.default.createElement(
+	        'tr',
+	        { key: key },
+	        _react2.default.createElement(
+	          'td',
+	          null,
 	          tag["name"]
 	        ),
 	        _react2.default.createElement(
@@ -540,9 +566,15 @@
 	        )
 	      ));
 	    }
+
 	    return _react2.default.createElement(
 	      'div',
 	      { id: 'tags' },
+	      _react2.default.createElement(
+	        'div',
+	        null,
+	        'MAIN CATEGORIES'
+	      ),
 	      _react2.default.createElement(
 	        'table',
 	        null,
@@ -550,6 +582,20 @@
 	          'tbody',
 	          null,
 	          trs
+	        )
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        null,
+	        'TAGS'
+	      ),
+	      _react2.default.createElement(
+	        'table',
+	        null,
+	        _react2.default.createElement(
+	          'tbody',
+	          null,
+	          ttrs
 	        )
 	      )
 	    );

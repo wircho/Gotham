@@ -176,7 +176,7 @@ function processTags(json) {
 	        cats.sort((a,b) => {
 	        	return (a.value < b.value) ? 1 : ((a.value > b.value) ? (-1) : 0);
 	        });
-	        res({addOtherCategory(cats),tags});
+	        res({cats:addOtherCategory(cats),tags});
         },rej);
         
 	});
