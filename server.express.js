@@ -135,10 +135,10 @@ function addOtherCategory(cats) {
 	}
 	if (maxValue >= t) {
 		var otherValue = Math.max(0,minValue - (maxValue - t));
-		newCats.unshift({name:"Other",value:otherValue});
+		newCats.push({name:"Other",value:otherValue});
 	}else {
 		var otherValue = Math.min(0,maxValue + (t - maxValue));
-		newCats.push({name:"Other",value:otherValue});
+		newCats.unshift({name:"Other",value:otherValue});
 	}
 	console.log(newCats);
 	return newCats;
