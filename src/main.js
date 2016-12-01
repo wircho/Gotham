@@ -468,7 +468,7 @@ const Info = React.createClass({
 
     return (
       <div id="tags">
-        <div>CATEGORIES</div>
+        <div>MAIN CATEGORIES</div>
         <table>
           <tbody>
             {trs}

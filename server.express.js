@@ -34,30 +34,7 @@ const CLARIFAI_KEY = process.env.CLARIFAI_KEY;
 // Local Utilities/Constants
 var extRE = /(?:\.([^.]+))?$/;
 
-var clarifaiFeatureKeys = ["road", "no person", "street", "outdoors", "travel", "environment", "vehicle", "urban",
-"transportation system", "city", "calamity", "pavement", "landscape", "car", "building", "people", "offense", "police",
-"accident", "architecture", "traffic", "guidance", "asphalt", "storm", "nature", "tree", "battle", "daylight", "house",
-"sign", "light", "action", "rain", "wood", "park", "old", "business", "rally", "desktop", "competition", "industry",
-"summer", "flood", "grass", "weather", "home", "stone", "ground", "garden", "water", "waste", "empty", "garbage",
-"texture", "concrete", "leaf", "wall", "highway", "pollution", "drive", "family", "hurricane", "sky", "flora", "soil",
-"dirty", "pattern", "danger", "track", "abstract", "graffiti", "expression", "truck", "wheel", "town", "war", "trash",
-"military", "abandoned", "window", "surface", "blur", "color", "automotive", "one", "blacktop", "hurry", "demolition",
-"safety", "flower", "sand", "security", "recycling", "race", "broken", "door", "adult", "motion", "savings", "rock",
-"auto racing", "lane", "cement", "lawn", "seat", "bus", "rough", "climate change", "container", "footpath", "beach",
-"indoors", "steel", "winter", "design", "soccer", "retro", "brick", "train", "line", "modern", "litter", "room",
-"recreation", "fast", "stock", "growth", "construction", "fence", "vintage", "rebellion", "warning", "tarmac", "text",
-"man", "museum", "earthquake", "hood", "commerce", "emergency", "shadow", "bitumen", "snow", "roadway", "flame",
-"bench", "symbol", "furniture", "fall", "yard", "tourism", "reflection", "food", "group", "art", "railway", "bridge",
-"seashore", "desert", "dust", "walk", "floor", "rural", "stop", "agriculture", "airport", "religion", "iron", "tube",
-"river", "luxury", "public", "technology", "season", "parking lot", "vertical", "entrance", "injury", "chair", "finance",
-"paper", "dark", "cold", "show", "gravel", "election", "exhibition", "wet", "championship", "sedan", "football",
-"equipment", "disposal", "exterior", "driver", "damage", "vandalism", "force", "sea", "driveway", "branch", "fair weather",
-"pool", "horizontal", "windshield", "energy", "crash", "farm", "antique", "fabric", "backyard", "evening", "roadside",
-"caution", "wooden", "leisure", "crack", "field", "child", "wear", "interaction", "paving", "dump", "bin", "ancient",
-"ice", "noon", "close-up", "hole", "perspective", "power", "woman", "wire", "plastic", "lush", "tar", "vacation",
-"scenic", "painting", "rusty", "junk", "downtown", "cobblestone", "information", "airplane", "bomb", "forbidden",
-"coupe", "step", "law enforcement", "speed", "glass", "electricity", "intersection", "contemporary", "inside", "sunset",
-"box", "interior design"];
+var clarifaiFeatureKeys = ["road", "no person", "street", "outdoors", "travel", "environment", "vehicle", "urban", "transportation system", "city", "pavement", "landscape", "car", "building", "people", "offense", "police", "accident", "architecture", "traffic", "guidance", "asphalt", "storm", "nature", "tree", "battle", "daylight", "house", "sign", "light", "action", "rain", "wood", "park", "old", "business", "rally", "desktop", "competition", "industry", "summer", "flood", "grass", "weather", "home", "stone", "ground", "garden", "water", "waste", "empty", "garbage", "texture", "concrete", "leaf", "wall", "highway", "pollution", "drive", "family", "hurricane", "sky", "flora", "soil", "dirty", "pattern", "danger", "track", "abstract", "graffiti", "expression", "truck", "wheel", "town", "war", "trash", "military", "abandoned", "window", "surface", "blur", "color", "automotive", "one", "blacktop", "hurry", "demolition", "safety", "flower", "sand", "security", "recycling", "race", "broken", "door", "adult", "motion", "savings", "rock", "auto racing", "lane", "cement", "lawn", "seat", "bus", "rough", "climate change", "container", "footpath", "beach", "indoors", "steel", "winter", "design", "soccer", "retro", "brick", "train", "line", "modern", "litter", "room", "recreation", "fast", "stock", "growth", "construction", "fence", "vintage", "rebellion", "warning", "tarmac", "text", "man", "museum", "earthquake", "hood", "commerce", "emergency", "shadow", "bitumen", "snow", "roadway", "flame", "bench", "symbol", "furniture", "fall", "yard", "tourism", "reflection", "food", "group", "art", "railway", "bridge", "seashore", "desert", "dust", "walk", "floor", "rural", "stop", "agriculture", "airport", "religion", "iron", "tube", "river", "luxury", "public", "technology", "season", "parking lot", "vertical", "entrance", "injury", "chair", "finance", "paper", "dark", "cold", "show", "gravel", "election", "exhibition", "wet", "championship", "sedan", "football", "equipment", "disposal", "exterior", "driver", "damage", "vandalism", "force", "sea", "driveway", "branch", "fair weather", "pool", "horizontal", "windshield", "energy", "crash", "farm", "antique", "fabric", "backyard", "evening", "roadside", "caution", "wooden", "leisure", "crack", "field", "child", "wear", "interaction", "paving", "dump", "bin", "ancient", "ice", "noon", "close-up", "hole", "perspective", "power", "woman", "wire", "plastic", "lush", "tar", "vacation", "scenic", "painting", "rusty", "junk", "downtown", "cobblestone", "information", "airplane", "bomb", "forbidden", "coupe", "step", "law enforcement", "speed", "glass", "electricity", "intersection", "contemporary", "inside", "sunset", "box", "interior design"];
 
 var categories = [
 	"Potholes & Sidewalk Repair",
@@ -143,6 +120,28 @@ function applyML(vector,theta1,theta2) {
 	return applySigmoid(applyMatrix(applySigmoid(applyMatrix(preProcessVector(vector),theta1)),theta2));
 }
 
+function addOtherCategory(cats) {
+	const t = 0.25;
+	var maxValue = 0;
+	var minValue = 1;
+	var numCats = cats.length;
+	var newCats = [];
+	for (var i=0; i<numCats; i+=1) {
+		newCats.push(cats[i]);
+		var value = cats[i]["value"];
+		maxValue = Math.max(maxValue,value);
+		minValue = Math.min(minValue,value);
+	}
+	if (maxValue >= t) {
+		var otherValue = Math.max(0,minValue - (maxValue - t));
+		newCats.unshift({name:"Other",value:otherValue});
+	}else {
+		var otherValue = Math.min(0,maxValue + (t - maxValue));
+		newCats.push({name:"Other",value:otherValue});
+	}
+	return newCats;
+}
+
 function processTags(json) {
 	return new Promise(function(res,rej) {
 		var results = json.results;
@@ -177,7 +176,7 @@ function processTags(json) {
 	        cats.sort((a,b) => {
 	        	return (a.value < b.value) ? 1 : ((a.value > b.value) ? (-1) : 0);
 	        });
-	        res({cats,tags});
+	        res({addOtherCategory(cats),tags});
         },rej);
         
 	});
