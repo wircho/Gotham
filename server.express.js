@@ -121,6 +121,7 @@ function applyML(vector,theta1,theta2) {
 }
 
 function addOtherCategory(cats) {
+	console.log(cats);
 	const t = 0.25;
 	var maxValue = 0;
 	var minValue = 1;
@@ -139,6 +140,7 @@ function addOtherCategory(cats) {
 		var otherValue = Math.min(0,maxValue + (t - maxValue));
 		newCats.push({name:"Other",value:otherValue});
 	}
+	console.log(newCats);
 	return newCats;
 }
 
