@@ -4,8 +4,8 @@ body, html {
 	margin:0px; 
 	font-family:sans-serif;
 	font-size:15pt;
-	/*font-family: 'Dosis', sans-serif;*/
-	font-family: 'Concert One';
+	font-family: 'Dosis', sans-serif;
+	/*font-family: 'Dosis';*/
 }
 body {
 	padding-top:50px;
@@ -29,6 +29,7 @@ body {
 	height:300px;
 	border-color:black;
 	border-width:3px;
+	border-radius: 25px;
 }
 #image-preview {
 	position:absolute;
