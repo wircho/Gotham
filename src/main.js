@@ -262,7 +262,7 @@ const Info = React.createClass({
       var key = "tag " + i;
       //ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
       var cls = classNames({topcat:i===0,anycat:i!==0});
-      ttrs.push(<div key={key} classNames={cls}># {tag["name"]}</div>);
+      ttrs.push(<div key={key} className={cls}># {tag["name"]}</div>);
     }
 
     return (
