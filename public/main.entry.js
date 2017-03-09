@@ -46,10 +46,6 @@
 
 	'use strict';
 
-	var _stringify = __webpack_require__(275);
-
-	var _stringify2 = _interopRequireDefault(_stringify);
-
 	var _promise = __webpack_require__(1);
 
 	var _promise2 = _interopRequireDefault(_promise);
@@ -83,48 +79,11 @@
 	var classNames = __webpack_require__(274);
 
 
-	// Local utilities
-	function nullFallback(x, y) {
-	  if ((0, _wirchoUtilities.def)(x) && x !== null) {
-	    return x;
-	  }
-	  return y;
-	}
-
-	function emptyFallback(x, y) {
-	  if ((0, _wirchoUtilities.def)(x) && x !== null && x !== "") {
-	    return x;
-	  }
-	  return y;
-	}
-
-	function getLocation() {
-	  return new _promise2.default(function (resolve, reject) {
-	    if (navigator.geolocation) {
-	      navigator.geolocation.getCurrentPosition(function (location) {
-	        resolve({ latitude: location.coords.latitude, longitude: location.coords.longitude });
-	      }, function (error) {
-	        switch (error.code) {
-	          case error.PERMISSION_DENIED:
-	            reject((0, _wirchoUtilities.err)("User denied the request for Geolocation."));
-	            break;
-	          case error.POSITION_UNAVAILABLE:
-	            reject((0, _wirchoUtilities.err)("Location information is unavailable."));
-	            break;
-	          case error.TIMEOUT:
-	            reject((0, _wirchoUtilities.err)("The request to get user location timed out."));
-	            break;
-	          case error.UNKNOWN_ERROR:
-	            reject((0, _wirchoUtilities.err)("An unknown error occurred."));
-	            break;
-	        }
-	      });
-	    } else {
-	      reject((0, _wirchoUtilities.err)("Not supported"));
-	    }
-	  });
-	}
-
+	var isDragAndDropSupported = function () {
+	  var div = document.createElement('div');
+	  return ('draggable' in div || 'ondragstart' in div && 'ondrop' in div) && 'FormData' in window && 'FileReader' in window;
+	}();
+	// API
 	function apiReq(dict) {
 	  return new _promise2.default(function (res, rej) {
 	    _jquery2.default.ajax((0, _wirchoUtilities.mutate)({
@@ -145,71 +104,97 @@
 	  });
 	}
 
-	function storageAvailable(type) {
-	  try {
-	    var storage = window[type],
-	        x = '__storage_test__';
-	    storage.setItem(x, x);
-	    storage.removeItem(x);
-	    return true;
-	  } catch (e) {
-	    return false;
+	function uploadFileData(fileData) {
+	  var file = (0, _wirchoUtilities.def)(fileData) && fileData !== null ? fileData : undefined;
+	  var data = {};
+	  if ((0, _wirchoUtilities.def)(file)) {
+	    data.name = file.name;
+	    data.type = file.type;
 	  }
+	  return new _promise2.default(function (res, rej) {
+	    if (!(0, _wirchoUtilities.def)(file) || !(0, _wirchoUtilities.def)(data.name) || !(0, _wirchoUtilities.def)(data.type)) {
+	      rej((0, _wirchoUtilities.err)("Bad file data."));
+	      return;
+	    }
+	    apiReq({ url: "/sign-s3", data: data }).then(function (json) {
+	      var signedRequest = json.signedRequest;
+	      var url = json.url;
+	      var fileName = json.fileName;
+	      if (!(0, _wirchoUtilities.def)(signedRequest) || !(0, _wirchoUtilities.def)(url)) {
+	        rej((0, _wirchoUtilities.err)("Failed to get S3 signed request or file URL."));
+	        return;
+	      }
+	      var xhr = new XMLHttpRequest();
+	      xhr.open('PUT', signedRequest);
+	      xhr.onreadystatechange = function () {
+	        if (xhr.readyState === 4) {
+	          if (xhr.status === 200) {
+	            res({ url: url });
+	          } else {
+	            rej((0, _wirchoUtilities.err)("Failed to upload image file."));
+	          }
+	        }
+	      };
+	      xhr.send(file);
+	    }, rej);
+	  });
 	}
 
-	var submittedMessagesKey = 'submittedMessages';
-	var closedBubbleKey = 'bubbleIsClosed';
-
-	function storeMessageData(data) {
-	  if (storageAvailable('localStorage')) {
-	    var array = JSON.parse(nullFallback(localStorage.getItem(submittedMessagesKey), "[]"));
-	    array.push(data);
-	    localStorage.setItem(submittedMessagesKey, (0, _stringify2.default)(array));
-	  }
+	function getImageInfo(url) {
+	  return apiReq({ url: "/info", data: { url: url } });
 	}
+
+	// Constants
 
 	var ACTIONS = {
-	  SET_FILES: "SET_FILES", // Takes one array var files
-	  UPDATE_CONTENT: "UPDATE_CONTENT" // Takes fileName and content
-	};
+	  START_LOADING: "START_LOADING", // No params
+	  SET_INFO: "SET_INFO" };
 
 	// Redux model
 	/*
 	{
-	  files:[
-	    {fileName:...,url:...,date:...},
-	    {fileName:...,url:...,date:...},
-	    ...
-	  ],
-	  contents:{
-	    fileName1:...
-	    fileName2:...
+	  loading: Boolean,
+	  info: {
+	    cats: [
+	      {name:"...", value:0.98},
+	      {name:"...", value:0.65},
+	      ...
+	    ]
+	    tags: [
+	      {name:"...", value:0.98},
+	      {name:"...", value:0.65},
+	      ...
+	    ]
 	  }
 	}
 	*/
 
 	// Actions creators
-	var setFiles = function setFiles(files) {
-	  return { type: ACTIONS.SET_FILES, files: files };
+	var startLoading = function startLoading() {
+	  return { type: ACTIONS.START_LOADING };
 	};
-	var updateContent = function updateContent(fileName, content) {
-	  return { type: ACTIONS.UPDATE_CONTENT, fileName: fileName, content: content };
+	var setInfo = function setInfo(info) {
+	  return { type: ACTIONS.SET_INFO, info: info };
 	};
 
 	// Reducer
 	var initialState = {};
+	var clearState = {}; // bubble_is_closed will be persisted anyway
 	function app(state, action) {
 	  if (!(0, _wirchoUtilities.def)(state)) {
 	    return initialState;
 	  }
 	  switch (action.type) {
-	    case ACTIONS.SET_FILES:
-	      return (0, _wirchoUtilities.mutate)(state, { files: action.files, contents: {} });
+	    case ACTIONS.SET_INFO:
+	      var newState = (0, _wirchoUtilities.remove)(state, "loading");
+	      if ((0, _wirchoUtilities.def)(action.info)) {
+	        return (0, _wirchoUtilities.mutate)(newState, { info: action.info });
+	      } else {
+	        return (0, _wirchoUtilities.remove)(newState, "info");
+	      }
 	      break;
-	    case ACTIONS.UPDATE_CONTENT:
-	      var update = {};
-	      update[action.fileName] = action.content;
-	      return (0, _wirchoUtilities.mutate)(state, { contents: (0, _wirchoUtilities.mutate)(state.contents, update) });
+	    case ACTIONS.START_LOADING:
+	      return (0, _wirchoUtilities.mutate)(state, { loading: true });
 	      break;
 	  }
 	}
@@ -221,8 +206,19 @@
 
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 	  return {
-	    updateComponentContent: function updateComponentContent(fileName, content) {
-	      dispatch(updateContent(fileName, content));
+	    uploadImage: function uploadImage(file) {
+	      dispatch(startLoading());
+	      uploadFileData(file).then(function (json) {
+	        getImageInfo(json.url).then(function (json) {
+	          dispatch(setInfo(json));
+	        }, function (error) {
+	          alert("Something went wrong while processing image: " + (0, _wirchoUtilities.errstr)(error));
+	          dispatch(setInfo());
+	        });
+	      }, function (error) {
+	        alert("Something went wrong while uploading image: " + (0, _wirchoUtilities.errstr)(error));
+	        dispatch(setInfo());
+	      });
 	    }
 	  };
 	};
@@ -232,121 +228,159 @@
 	  displayName: 'App',
 
 	  render: function render() {
-	    if (this.props.files) {
-	      var items = this.props.files.map(function (file) {
-	        return _react2.default.createElement(Item, { key: file.fileName, date: file.date, fileName: file.fileName, url: file.url, content: this.props.contents[file.fileName], updateComponentContent: this.props.updateComponentContent });
-	      }.bind(this));
-	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	          'h1',
-	          null,
-	          'CHER MTL,'
-	        ),
-	        _react2.default.createElement(
-	          'ul',
-	          null,
-	          items
-	        )
-	      );
-	    } else {
-	      return _react2.default.createElement(
-	        'div',
-	        { id: 'outer-content' },
-	        'Loading'
-	      );
-	    }
+	    var tags = (0, _wirchoUtilities.def)(this.props.info) ? this.props.info.tags : undefined;
+	    var cats = (0, _wirchoUtilities.def)(this.props.info) ? this.props.info.cats : undefined;
+	    return _react2.default.createElement(
+	      'div',
+	      { id: 'inner-content' },
+	      _react2.default.createElement(ImageBox, { loading: this.props.loading, uploadImage: this.props.uploadImage }),
+	      _react2.default.createElement(Info, { loading: this.props.loading, tags: tags, cats: cats })
+	    );
 	  }
 	});
 
-	function makeLocationURL(latitude, longitude, zoom) {
-	  return "http://maps.google.com/maps?q=" + latitude + "," + longitude + ((0, _wirchoUtilities.def)(zoom) ? "&z=" + zoom : "");
-	}
-
-	var Item = _react2.default.createClass({
-	  displayName: 'Item',
+	var ImageBox = _react2.default.createClass({
+	  displayName: 'ImageBox',
 
 	  componentDidMount: function componentDidMount() {
-	    if (!(0, _wirchoUtilities.def)(this.props.content)) {
-	      apiReq({ url: this.props.url }).then(function (json) {
-	        this.props.updateComponentContent(this.props.fileName, json);
-	      }.bind(this), function (error) {
-	        console.log("Error: " + (0, _wirchoUtilities.errstr)(error));
-	      }.bind(this));
+	    var $form = (0, _jquery2.default)("#image-box");
+	    var preview = (0, _jquery2.default)("#image-preview")[0];
+	    var $input = (0, _jquery2.default)("#image-file");
+	    var imageBoxComponent = this;
+	    var processFiles = function processFiles(files) {
+	      var imageType = /^image\//;
+	      if (files.length == 0) {
+	        return;
+	      }
+	      var file = files[0];
+	      if (!imageType.test(file.type)) {
+	        alert("Wrong file type. Please provide an image.");
+	        return;
+	      }
+	      preview.file = file;
+	      var reader = new FileReader();
+	      reader.onload = function (aImg) {
+	        return function (e) {
+	          aImg.src = e.target.result;
+	        };
+	      }(preview);
+	      reader.readAsDataURL(file);
+	      $form.removeClass("without-image");
+	      $form.addClass("with-image");
+	      imageBoxComponent.props.uploadImage(file);
+	    };
+	    if (isDragAndDropSupported) {
+	      $form.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
+	        e.preventDefault();
+	        e.stopPropagation();
+	      }).on('dragover dragenter', function () {
+	        $form.addClass('dragging');
+	      }).on('dragleave dragend drop', function () {
+	        $form.removeClass('dragging');
+	      }).on('drop', function (e) {
+	        if (imageBoxComponent.props.loading) {
+	          return;
+	        }
+	        var files = e.originalEvent.dataTransfer.files;
+	        processFiles(files);
+	      });
 	    }
+	    $form.on("change", "#image-file", function () {
+	      var files = $input[0].files;
+	      processFiles(files);
+	    });
 	  },
 	  render: function render() {
-	    if ((0, _wirchoUtilities.def)(this.props.content)) {
-	      var message = emptyFallback(this.props.content.message, "(empty)");
-	      var name = emptyFallback(this.props.content.name, "(no name)");
-	      var uniqueId = emptyFallback(this.props.content.uniqueId, "no unique id");
-	      var latitude = this.props.content.latitude;
-	      var longitude = this.props.content.longitude;
-	      var zoom = this.props.content.zoom;
-	      var imageURL = this.props.url.slice(0, -5);
-	      var locationURL = (0, _wirchoUtilities.def)(latitude) && (0, _wirchoUtilities.def)(longitude) ? makeLocationURL(latitude, longitude, zoom) : undefined;
-	      var date = this.props.date;
-	      return _react2.default.createElement(
-	        'li',
-	        null,
+	    return _react2.default.createElement(
+	      'div',
+	      { id: 'image-box-container' },
+	      _react2.default.createElement(
+	        'form',
+	        { id: 'image-box', className: 'without-image' },
+	        _react2.default.createElement('img', { id: 'image-preview' }),
 	        _react2.default.createElement(
-	          'b',
-	          null,
+	          'div',
+	          { id: 'image-box-content' },
 	          _react2.default.createElement(
-	            'a',
-	            { href: imageURL, target: '_blank' },
-	            'Image Link'
-	          ),
-	          ' | ',
-	          _react2.default.createElement(
-	            'a',
-	            { href: locationURL, target: '_blank' },
-	            'Location Link'
+	            'label',
+	            { id: 'image-cabinet', htmlFor: 'image-file', className: classNames({ "disabled": this.props.loading }) },
+	            _react2.default.createElement('input', { id: 'image-file', type: 'file', name: 'files[]' })
 	          )
-	        ),
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement(
-	          'b',
-	          null,
-	          'Sent:'
-	        ),
-	        _react2.default.createElement('br', null),
-	        date,
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement(
-	          'b',
-	          null,
-	          'Message:'
-	        ),
-	        _react2.default.createElement('br', null),
-	        message,
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement(
-	          'b',
-	          null,
-	          'Name:'
-	        ),
-	        _react2.default.createElement('br', null),
-	        name,
-	        ' (',
-	        uniqueId,
-	        ')',
-	        _react2.default.createElement('br', null),
-	        _react2.default.createElement('br', null)
-	      );
-	    } else {
-	      return _react2.default.createElement(
-	        'li',
-	        null,
-	        'Loading ',
-	        this.props.url,
-	        '...'
-	      );
+	        )
+	      )
+	    );
+	  }
+	});
+
+	var catColors = {
+	  pothole: "#F68A33",
+	  garbage: "#025572",
+	  graffiti: "#EF4550",
+	  other: "#66CBF4"
+	};
+
+	var catRegExps = {
+	  pothole: new RegExp("pothole", "i"),
+	  garbage: new RegExp("garbage", "i"),
+	  graffiti: new RegExp("graffiti", "i"),
+	  other: new RegExp("other", "i")
+	};
+
+	var Info = _react2.default.createClass({
+	  displayName: 'Info',
+
+	  render: function render() {
+	    if (this.props.loading || !(0, _wirchoUtilities.def)(this.props.tags) || !(0, _wirchoUtilities.def)(this.props.cats) || this.props.tags.length === 0 || this.props.cats.length === 0) {
+	      return _react2.default.createElement('div', null);
 	    }
+
+	    var trs = [];
+	    for (var i = 0; i < this.props.cats.length; i += 1) {
+	      var cat = this.props.cats[i];
+	      var key = "tag " + i;
+	      //trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
+	      var name = cat["name"];
+	      var color = "";
+	      (0, _wirchoUtilities.loop)(catRegExps, function (k, r) {
+	        if (name.match(r)) {
+	          color = catColors[k];
+	        }
+	      });
+	      var cls = classNames({ topcat: i === 0, anycat: i !== 0 });
+	      trs.push(_react2.default.createElement(
+	        'div',
+	        { key: key, className: cls, style: 'background-color:{color}' },
+	        name
+	      ));
+	    }
+
+	    var ttrs = [];
+	    for (var i = 0; i < this.props.tags.length; i += 1) {
+	      var tag = this.props.tags[i];
+	      var key = "tag " + i;
+	      //ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+	      ttrs.push(_react2.default.createElement(
+	        'div',
+	        { key: key },
+	        '# ',
+	        tag["name"]
+	      ));
+	    }
+
+	    return _react2.default.createElement(
+	      'div',
+	      { id: 'tags' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'catlist' },
+	        trs
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'taglist' },
+	        ttrs
+	      )
+	    );
 	  }
 	});
 
@@ -358,12 +392,6 @@
 	  { store: store },
 	  _react2.default.createElement(VisibleApp, null)
 	), document.getElementById('content'));
-
-	apiReq({ url: "/all-submissions" }).then(function (array) {
-	  store.dispatch(setFiles(array));
-	}, function (error) {
-	  alert("Something went wrong. Please refresh. " + (0, _wirchoUtilities.errstr)(error));
-	});
 
 /***/ },
 /* 1 */
@@ -41706,22 +41734,6 @@
 		}
 	}());
 
-
-/***/ },
-/* 275 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(276), __esModule: true };
-
-/***/ },
-/* 276 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var core  = __webpack_require__(12)
-	  , $JSON = core.JSON || (core.JSON = {stringify: JSON.stringify});
-	module.exports = function stringify(it){ // eslint-disable-line no-unused-vars
-	  return $JSON.stringify.apply($JSON, arguments);
-	};
 
 /***/ }
 /******/ ]);
