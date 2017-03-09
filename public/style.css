@@ -138,6 +138,7 @@ body {
 .catlist > div: nth-child(6) {
 	opacity: 0.1;
 }*/
+
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
 	border-style:solid;
