@@ -253,7 +253,7 @@ const Info = React.createClass({
       var cat = this.props.cats[i];
       var key = "tag " + i;
       //trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
-      trs.push(<div>{cat["name"]}</div>);
+      trs.push(<div key={key}>{cat["name"]}</div>);
     }
 
     var ttrs = [];
@@ -261,7 +261,7 @@ const Info = React.createClass({
       var tag = this.props.tags[i];
       var key = "tag " + i;
       //ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
-      ttrs.push(<div>{tag["name"]}</div>);
+      ttrs.push(<div key={key}>{tag["name"]}</div>);
     }
 
     return (
