@@ -117,11 +117,23 @@ body {
 	padding-left: 3px;
 	padding-right: 3px;
 }
-.catlist > div {
-	opacity: 0.1;
-}
 .catlist > div: first-child {
 	opacity: 1;
+}
+.catlist > div: nth-child(2) {
+	opacity: 0.1;
+}
+.catlist > div: nth-child(3) {
+	opacity: 0.1;
+}
+.catlist > div: nth-child(4) {
+	opacity: 0.1;
+}
+.catlist > div: nth-child(5) {
+	opacity: 0.1;
+}
+.catlist > div: nth-child(6) {
+	opacity: 0.1;
 }
 .taglist {
 	margin-top: 10px;
