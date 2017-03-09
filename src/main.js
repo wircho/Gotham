@@ -252,30 +252,24 @@ const Info = React.createClass({
     for (var i=0; i<this.props.cats.length; i+=1) {
       var cat = this.props.cats[i];
       var key = "tag " + i;
-      trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
+      //trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
+      trs.push(<div>{cat["name"]}</div>);
     }
 
     var ttrs = [];
     for (var i=0; i<this.props.tags.length; i+=1) {
       var tag = this.props.tags[i];
       var key = "tag " + i;
-      ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      //ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
+      ttrs.push(<div>{tag["name"]}</div>);
     }
 
     return (
       <div id="tags">
         <div>MAIN CATEGORIES</div>
-        <table>
-          <tbody>
-            {trs}
-          </tbody>
-        </table>
+        <div>{trs}</div>
         <div>TAGS</div>
-        <table>
-          <tbody>
-            {ttrs}
-          </tbody>
-        </table>
+        <div>{ttrs}</div>
       </div>
     )
   }
