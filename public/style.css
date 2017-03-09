@@ -120,24 +120,13 @@ body {
 	padding-left: 3px;
 	padding-right: 3px;
 }
-.catlist > div: first-child {
+.catlist > div {
+	opacity: 0.1;
+}
+
+.topcat {
 	opacity: 1;
 }
-/*.catlist > div: nth-child(2) {
-	opacity: 0.1;
-}
-.catlist > div: nth-child(3) {
-	opacity: 0.1;
-}
-.catlist > div: nth-child(4) {
-	opacity: 0.1;
-}
-.catlist > div: nth-child(5) {
-	opacity: 0.1;
-}
-.catlist > div: nth-child(6) {
-	opacity: 0.1;
-}*/
 
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
