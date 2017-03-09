@@ -22,7 +22,8 @@ import {
 //Object utilities
   mutate,
   remove,
-  rotate
+  rotate,
+  loop
 } from 'wircho-utilities';
 
 var isDragAndDropSupported = function() {
@@ -242,6 +243,20 @@ const ImageBox = React.createClass({
   }
 });
 
+const catColors = {
+  pothole:"#F68A33",
+  garbage:"#025572",
+  graffiti:"#EF4550",
+  other:"#66CBF4"
+};
+
+const catRegExps = {
+  pothole:new RegExp("pothole","i"),
+  garbage:new RegExp("garbage","i"),
+  graffiti:new RegExp("graffiti","i"),
+  other:new RegExp("other","i")
+}
+
 const Info = React.createClass({
   render: function() {
     if (this.props.loading || !def(this.props.tags) || !def(this.props.cats) || this.props.tags.length === 0 || this.props.cats.length === 0) {
@@ -253,8 +268,15 @@ const Info = React.createClass({
       var cat = this.props.cats[i];
       var key = "tag " + i;
       //trs.push(<tr key={key}><td className={classNames({highlighted:i<=0})}>{cat["name"]}</td><td>{cat["value"]}</td></tr>);
+      var name = cat["name"];
+      var color = "";
+      loop(catRegExps,function(k,r) {
+        if (name.match(r)) {
+          color = catColors[k];
+        }
+      });
       var cls = classNames({topcat:i===0,anycat:i!==0});
-      trs.push(<div key={key} className={cls}>{cat["name"]}</div>);
+      trs.push(<div key={key} className={cls} style="background-color:{color}">{name}</div>);
     }
 
     var ttrs = [];
