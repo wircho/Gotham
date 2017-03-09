@@ -120,10 +120,9 @@ body {
 	padding-left: 3px;
 	padding-right: 3px;
 }
-.catlist > div {
+.anycat {
 	opacity: 0.1;
 }
-
 .topcat {
 	opacity: 1;
 }
