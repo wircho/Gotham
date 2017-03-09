@@ -113,7 +113,6 @@ body {
 .catlist > div, .taglist > div {
 	position:relative;
 	display:inline-block;
-	background:blue;
 	color:white;
 	border-radius: 11px;
 	margin-right: 5px;
@@ -122,6 +121,9 @@ body {
 	padding-right: 5px;
 	padding-top: 2px;
 	padding-bottom: 3px;
+}
+.taglist > div {
+	background-color:#B4C1C5;
 }
 .anycat {
 	opacity: 0.1;
