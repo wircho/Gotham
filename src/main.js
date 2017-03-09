@@ -266,8 +266,8 @@ const Info = React.createClass({
 
     return (
       <div id="tags">
-        <div className="bubblelist catlist">{trs}</div>
-        <div className="bubblelist taglist">{ttrs}</div>
+        <div className="catlist">{trs}</div>
+        <div className="taglist">{ttrs}</div>
       </div>
     )
   }

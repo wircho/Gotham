@@ -98,15 +98,18 @@ body {
 	color:#ee333b;
 }
 /* BUBBLES */
-.bubblelist {
+.catlist, .taglist {
 	position: relative;
 	width: 300px;
 	margin-left: auto;
 	margin-right: auto;
 	text-align: left;
 }
+.taglist {
+	margin-top: 10px;
+}
 /* Each bubble */
-.bubblelist > div {
+.catlist > div, .taglist > div {
 	position:relative;
 	display:inline-block;
 	background:blue;
@@ -116,9 +119,6 @@ body {
 	margin-bottom: 5px;
 	padding-left: 3px;
 	padding-right: 3px;
-}
-.catlist {
-	
 }
 .catlist > div: first-child {
 	opacity: 1;
@@ -137,9 +137,6 @@ body {
 }
 .catlist > div: nth-child(6) {
 	opacity: 0.1;
-}
-.taglist {
-	margin-top: 10px;
 }
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
