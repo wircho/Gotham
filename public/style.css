@@ -99,7 +99,8 @@ body {
 }
 /* BUBBLES */
 .bubblelist {
-
+	position: relative;
+	width: 300px;
 }
 /* Each bubble */
 .bubblelist > div {
