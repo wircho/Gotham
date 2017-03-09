@@ -267,9 +267,9 @@ const Info = React.createClass({
     return (
       <div id="tags">
         <div>MAIN CATEGORIES</div>
-        <div>{trs}</div>
+        <div className="bubblelist catlist">{trs}</div>
         <div>TAGS</div>
-        <div>{ttrs}</div>
+        <div className="bubblelist taglist">{ttrs}</div>
       </div>
     )
   }

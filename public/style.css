@@ -97,6 +97,16 @@ body {
 .highlighted {
 	color:#ee333b;
 }
+/* BUBBLES */
+.bubblelist {
+
+}
+.bubblelist > div {
+	position:relative;
+	display:inline-block;
+	background:blue;
+	color:white;
+}
 /* GENERIC */
 button, textarea, input[type=text], input[type=submit], #sent-back, #sent-back:visited {
 	border-style:solid;
