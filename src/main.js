@@ -277,7 +277,7 @@ const Info = React.createClass({
         }
       });
       var cls = classNames({topcat:i===0,anycat:i!==0});
-      trs.push(<div key={key} className={cls} style="background-color:{color}">{name}</div>);
+      trs.push(<div key={key} className={cls} style={{backgroundColor:color}}>{name}</div>);
     }
 
     var ttrs = [];
