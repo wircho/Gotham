@@ -261,14 +261,12 @@ const Info = React.createClass({
       var tag = this.props.tags[i];
       var key = "tag " + i;
       //ttrs.push(<tr key={key}><td>{tag["name"]}</td><td>{tag["value"]}</td></tr>);
-      ttrs.push(<div key={key}>{tag["name"]}</div>);
+      ttrs.push(<div key={key}># {tag["name"]}</div>);
     }
 
     return (
       <div id="tags">
-        <div>MAIN CATEGORIES</div>
         <div className="bubblelist catlist">{trs}</div>
-        <div>TAGS</div>
         <div className="bubblelist taglist">{ttrs}</div>
       </div>
     )
