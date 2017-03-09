@@ -101,6 +101,8 @@ body {
 .bubblelist {
 	position: relative;
 	width: 300px;
+	margin-left: auto;
+	margin-right: auto;
 }
 /* Each bubble */
 .bubblelist > div {
